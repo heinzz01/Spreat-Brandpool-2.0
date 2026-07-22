@@ -981,25 +981,221 @@ document.getElementById('footYear').textContent=new Date().getFullYear();
 renderProfile(); renderPoolPreview(); renderRecs(); renderSeek();
 
 /* ============================================================
-   EINHEIT mit der Prepage (verdrahtet von Chat A, HP-Auftrag 2026-07-21):
-   Session-Guard + Konto-Anzeige + Abmelden. Session-Key = spreat20_session
-   (siehe ../_KOORDINATION.md). ?standalone in der URL überspringt den Guard
-   (für isoliertes Testen durch Chat B).
+   SUPABASE-ANBINDUNG (Chat A, HP-Auftrag 2026-07-21):
+   Echter OTP-Login (E-Mail-Code) → lädt die EIGENE Marke + Produkte aus der
+   Live-DB (RLS-Policies brands_owner / products_owner) und speichert Edits zurück.
+   ?standalone in der URL = Demo-Modus ohne Login (Schusters-Demo-Daten).
    ============================================================ */
-(function(){
-  const KEY='spreat20_session', HOME='../einzelhaendler/prepage-einzelhaendler.html';
-  let s=null; try{ s=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
-  const standalone=new URLSearchParams(location.search).has('standalone');
-  if(!standalone && (!s || s.role!=='marke')){ location.replace(HOME); return; }
-  window.spreatLogout=function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.href=HOME; };
-  const a=document.getElementById('acctArea');
-  if(a && s && s.role==='marke'){
-    const name=((s.brand&&s.brand.company)||s.email||'').replace(/</g,'&lt;');
-    a.innerHTML=`<span style="color:var(--muted)">${name}</span>
-      <button onclick="spreatLogout()" style="background:none;border:1px solid var(--border);border-radius:9px;
-        padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text);font-family:inherit">↩︎ Abmelden</button>`;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<div id="mLogin" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto">
+  <div style="max-width:420px;margin:9vh auto 40px;padding:0 18px">
+    <img src="https://cdn.prod.website-files.com/6675b8a846c2cbec25f829cb/6675cb10048c54618b55d8df_Logo_Spreat_SVG_3920px.svg" style="height:26px;filter:brightness(0)" alt="Spreat">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 24px;margin-top:22px;box-shadow:0 10px 30px rgba(16,18,29,.07)">
+      <h2 style="font-size:19px;margin-bottom:6px">Login Markenprofil</h2>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.55;margin-bottom:16px">Melde dich mit der E-Mail-Adresse an, die bei deiner Marke hinterlegt ist. Wir schicken dir einen 6-stelligen Code.</p>
+      <div id="mlStep1">
+        <div class="field"><label>E-Mail</label><input type="email" id="mlEmail" placeholder="max@deinemarke.de" style="width:100%"></div>
+        <div id="mlErr1" style="display:none;color:#b42318;font-size:13px;margin-top:8px"></div>
+        <button class="btn btn-primary" id="mlSendBtn" style="width:100%;margin-top:14px" onclick="mlSendCode()">Code senden</button>
+        <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="location.href='../einzelhaendler/prepage-einzelhaendler.html'">← Zurück zur Startseite</button>
+      </div>
+      <div id="mlStep2" style="display:none">
+        <div class="field"><label>6-stelliger Code aus der E-Mail an <b id="mlSent"></b></label>
+          <input id="mlCode" inputmode="numeric" maxlength="6" placeholder="······" style="width:100%;text-align:center;font-size:22px;letter-spacing:8px"></div>
+        <div id="mlErr2" style="display:none;color:#b42318;font-size:13px;margin-top:8px"></div>
+        <button class="btn btn-primary" id="mlVerifyBtn" style="width:100%;margin-top:14px" onclick="mlVerify()">Anmelden</button>
+        <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="mlBack()">← andere E-Mail</button>
+      </div>
+      <div id="mlNoBrand" style="display:none">
+        <div style="background:var(--bg);border-radius:11px;padding:14px;font-size:13.5px;line-height:1.55">
+          Du bist angemeldet als <b id="mlWho"></b> — aber zu dieser E-Mail ist noch <b>kein freigegebenes Markenprofil</b> hinterlegt.
+          Wir bereiten dein Profil gerade vor; du bekommst eine E-Mail, sobald es soweit ist.</div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:12px" onclick="spreatLogout()">↩︎ Abmelden</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const SB_URL='https://lzgrcnkatchkrvlrjnxa.supabase.co';
+const SB_KEY='sb_publishable_L0JTr0QFuUMiS5S5JPCPig_auZT1zZF';
+if(typeof supabase==='undefined'){
+  document.body.insertAdjacentHTML('beforeend',
+    '<div style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:300;background:#b42318;color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;font-weight:600">⚠️ Supabase-Bibliothek konnte nicht geladen werden — Seite läuft im Demo-Modus (Schusters). Internet/CDN prüfen.</div>');
+  throw new Error('supabase-js nicht geladen');
+}
+const sbm = supabase.createClient(SB_URL, SB_KEY);
+const STORAGE_BASE='https://lzgrcnkatchkrvlrjnxa.supabase.co/storage/v1/object/public/markenpool/';
+const storageUrl = p => !p ? '' : (/^https?:\/\//.test(p) ? p : STORAGE_BASE + String(p).replace(/^\/+/,''));
+const SESSION_KEY='spreat20_session', HOME='../einzelhaendler/prepage-einzelhaendler.html';
+const STANDALONE=new URLSearchParams(location.search).has('standalone');
+let dbBrand=null;   // Original-DB-Zeile der eingeloggten Marke
+
+function mlShow(step){ ['mlStep1','mlStep2','mlNoBrand'].forEach(s=>document.getElementById(s).style.display = s===step?'':'none'); }
+function mlBack(){ mlShow('mlStep1'); }
+async function mlSendCode(){
+  const email=(document.getElementById('mlEmail').value||'').trim().toLowerCase();
+  const err=document.getElementById('mlErr1');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='Bitte eine gültige E-Mail eingeben.'; err.style.display=''; return; }
+  err.style.display='none';
+  const btn=document.getElementById('mlSendBtn'); btn.disabled=true; btn.textContent='Sende Code …';
+  const {error}=await sbm.auth.signInWithOtp({email});
+  btn.disabled=false; btn.textContent='Code senden';
+  if(error){ err.textContent='Code konnte nicht gesendet werden: '+error.message; err.style.display=''; return; }
+  document.getElementById('mlSent').textContent=email;
+  mlShow('mlStep2'); document.getElementById('mlCode').focus();
+}
+async function mlVerify(){
+  const email=(document.getElementById('mlEmail').value||'').trim().toLowerCase();
+  const code=(document.getElementById('mlCode').value||'').trim();
+  const err=document.getElementById('mlErr2');
+  const btn=document.getElementById('mlVerifyBtn'); btn.disabled=true; btn.textContent='Prüfe …';
+  let r=await sbm.auth.verifyOtp({email, token:code, type:'email'});
+  if(r.error) r=await sbm.auth.verifyOtp({email, token:code, type:'signup'});
+  btn.disabled=false; btn.textContent='Anmelden';
+  if(r.error){ err.textContent='Code ungültig oder abgelaufen.'; err.style.display=''; return; }
+  err.style.display='none';
+  await bootBrand();
+}
+window.spreatLogout=async function(){
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+  try{ await sbm.auth.signOut(); }catch(e){}
+  location.href=HOME;
+};
+
+/* ---- Marke + Produkte aus der DB laden und die Seite damit füllen ---- */
+async function bootBrand(){
+  const {data:{session:s}}=await sbm.auth.getSession();
+  if(!s){ // nicht eingeloggt -> Login zeigen (E-Mail ggf. von der Prepage vorbefüllt)
+    try{ const ls=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+      if(ls&&ls.email) document.getElementById('mlEmail').value=ls.email; }catch(e){}
+    document.getElementById('mLogin').style.display=''; mlShow('mlStep1'); return;
   }
-})();
+  const email=(s.user.email||'').toLowerCase();
+  const {data:bs,error}=await sbm.from('brands').select('*').eq('login_email',email).eq('login_freigegeben',true);
+  if(error || !bs || !bs.length){
+    document.getElementById('mLogin').style.display=''; mlShow('mlNoBrand');
+    document.getElementById('mlWho').textContent=email; return;
+  }
+  dbBrand=bs[0];
+  // Produkte der Marke (owner-read sieht auch ausgeblendete)
+  const {data:ps}=await sbm.from('products').select('*').eq('marken_id',dbBrand.marken_id).order('position',{ascending:true,nullsFirst:false}).range(0,1999);
+  applyDbData(dbBrand, ps||[]);
+  try{ localStorage.setItem(SESSION_KEY, JSON.stringify({role:'marke', email, brand:{company:dbBrand.name}, ts:Date.now()})); }catch(e){}
+  document.getElementById('mLogin').style.display='none';
+}
+function applyDbData(b, ps){
+  brand.name=b.name||''; brand.logo=storageUrl(b.logo_url);
+  brand.kurz=b.kurzbeschreibung||''; brand.beschreibung=b.beschreibung||'';
+  brand.welt=[b.kategorie_haupt,b.kategorie_unter].filter(Boolean).join(' › ');
+  brand.defaultMargin=Number(b.provision_min)||20;
+  brand.website=b.website||''; brand.verified=true;
+  brand.gruendungsjahr=b.gruendungsjahr||''; brand.instagram=b.instagram||''; brand.tiktok=b.tiktok||'';
+  brand.facebook=b.facebook||''; brand.linkedin=b.linkedin||'';
+  brand.ean=b.ean||''; brand.eurolochung=b.eurolochung||''; brand.bereits_gelistet=b.bereits_gelistet||'';
+  brand.jahresumsatz=b.jahresumsatz||''; brand.werbebudget=b.werbebudget||'';
+  brand.display=b.display||''; brand.displayNote=b.display_note||'';
+  products.length=0;
+  ps.forEach((p,i)=>products.push({
+    id:i+1, dbId:p.produkt_id, name:p.produktname, uvp:Number(p.uvp_preis)||0,
+    kat:p.kategorie||'Sortiment', img:storageUrl(p.bild_url),
+    featured:!!(p.featured_bestaetigt||p.featured),
+    margin:p.provision_prozent!=null?Number(p.provision_prozent):null,
+    desc:p.beschreibung||'', _origImg:storageUrl(p.bild_url)
+  }));
+  brand.avgCart=products.length?Math.round(products.reduce((s,p)=>s+p.uvp,0)/products.length):0;
+  const kats=[...new Set(products.map(p=>p.kat))];
+  categories.length=0; kats.forEach(k=>categories.push({name:k,margin:null}));
+  const acct=document.getElementById('acctArea');
+  if(acct) acct.innerHTML=`<span style="color:var(--muted)">${esc(brand.name)}</span>
+    <button onclick="spreatLogout()" style="background:none;border:1px solid var(--border);border-radius:9px;
+      padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text);font-family:inherit">↩︎ Abmelden</button>`;
+  renderProfile(); renderPoolPreview(); renderRecs(); renderSeek();
+}
+
+/* ---- Persistenz: Edits in die DB schreiben ---- */
+async function dbUpdateBrand(patch){
+  if(!dbBrand || STANDALONE) return;
+  const {error}=await sbm.from('brands').update(patch).eq('marken_id',dbBrand.marken_id);
+  if(error){ console.error(error); toast('⚠️ Speichern in der Datenbank fehlgeschlagen'); }
+}
+async function dbUpdateProduct(dbId, patch){
+  if(!dbBrand || STANDALONE || !dbId) return;
+  const {error}=await sbm.from('products').update(patch).eq('produkt_id',dbId);
+  if(error){ console.error(error); toast('⚠️ Speichern in der Datenbank fehlgeschlagen'); }
+}
+const _saveDesc_db=saveDesc;
+saveDesc=function(){ _saveDesc_db(); dbUpdateBrand({kurzbeschreibung:brand.kurz, beschreibung:brand.beschreibung}); };
+const _saveField_db=saveField;
+saveField=function(){
+  const key=fieldKey; _saveField_db();
+  const map={
+    gruendungsjahr:{gruendungsjahr:brand.gruendungsjahr},
+    social:{instagram:brand.instagram, tiktok:brand.tiktok, facebook:brand.facebook, linkedin:brand.linkedin},
+    ean:{ean:brand.ean}, eurolochung:{eurolochung:brand.eurolochung},
+    gelistet:{bereits_gelistet:brand.bereits_gelistet},
+    jahresumsatz:{jahresumsatz:brand.jahresumsatz}, werbebudget:{werbebudget:brand.werbebudget},
+    display:{display:brand.display, display_note:brand.displayNote}
+  };
+  if(map[key]) dbUpdateBrand(map[key]);
+};
+const _saveProd_db=saveProd;
+saveProd=function(){
+  _saveProd_db();
+  const p=products.find(x=>x.id===prodEditId); if(!p) return;
+  const patch={produktname:p.name, uvp_preis:p.uvp, kategorie:p.kat, beschreibung:p.desc,
+    featured_bestaetigt:!!p.featured};
+  if(p.margin!=null) patch.provision_prozent=p.margin;
+  if(p.img!==p._origImg){
+    if(/^https?:\/\//.test(p.img)){ patch.bild_url=p.img; p._origImg=p.img; }
+    else toast('Hinweis: hochgeladene Bilddatei wird noch nicht gespeichert — bitte Bild-URL nutzen');
+  }
+  dbUpdateProduct(p.dbId, patch);
+};
+const _toggleTop_db=toggleTop;
+toggleTop=function(id){
+  _toggleTop_db(id);
+  const p=products.find(x=>x.id===id); if(p) dbUpdateProduct(p.dbId,{featured_bestaetigt:!!p.featured});
+};
+const _applyDefaultMargin_db=applyDefaultMargin;
+applyDefaultMargin=function(){
+  _applyDefaultMargin_db();
+  const v=brand.defaultMargin;
+  dbUpdateBrand({provision_min:v, provision_max:v});
+  products.forEach(p=>{ p.margin=null; }); // Overrides sind zurückgesetzt
+  if(dbBrand && !STANDALONE)
+    sbm.from('products').update({provision_prozent:v}).eq('marken_id',dbBrand.marken_id)
+      .then(({error})=>{ if(error){ console.error(error); toast('⚠️ Produkt-Margen nicht gespeichert'); } });
+};
+const _setCatMargin_db=setCatMargin;
+setCatMargin=function(i,v){
+  _setCatMargin_db(i,v);
+  const c=categories[i]; if(!c) return;
+  if(c.margin!=null && dbBrand && !STANDALONE)
+    sbm.from('products').update({provision_prozent:c.margin}).eq('marken_id',dbBrand.marken_id).eq('kategorie',c.name)
+      .then(({error})=>{ if(error){ console.error(error); toast('⚠️ Kategorie-Marge nicht gespeichert'); } });
+};
+const _renameCat_db=renameCat;
+renameCat=function(i,v){
+  const old=categories[i]?categories[i].name:null;
+  _renameCat_db(i,v);
+  const neu=categories[i]?categories[i].name:null;
+  if(old && neu && old!==neu && dbBrand && !STANDALONE)
+    sbm.from('products').update({kategorie:neu}).eq('marken_id',dbBrand.marken_id).eq('kategorie',old)
+      .then(({error})=>{ if(error){ console.error(error); toast('⚠️ Umbenennen nicht gespeichert'); } });
+};
+const _deleteCat_db=deleteCat;
+deleteCat=function(i){
+  const old=categories[i]?categories[i].name:null;
+  const before=categories.length;
+  _deleteCat_db(i);
+  if(old && categories.length<before && dbBrand && !STANDALONE)
+    sbm.from('products').update({kategorie:'Unkategorisiert'}).eq('marken_id',dbBrand.marken_id).eq('kategorie',old)
+      .then(({error})=>{ if(error){ console.error(error); toast('⚠️ Kategorie-Löschung nicht gespeichert'); } });
+};
+
+/* ---- Start: echte Session prüfen (außer ?standalone) ---- */
+if(!STANDALONE) bootBrand();
 </script>
 </body>
 </html>
