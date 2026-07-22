@@ -3125,11 +3125,11 @@ function submitBrandReg(){
 }
 function submitBrandLogin(){
   const err=document.getElementById('baLogErr');
-  const email=gv('baLogEmail');
+  const email=(gv('baLogEmail')||'').trim().toLowerCase();
   if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='Bitte eine gültige E-Mail-Adresse eingeben.'; err.style.display=''; return; }
   err.style.display='none';
-  saveSession20({role:'marke', email, ts:Date.now()}); // Code-Eingabe im Prototyp simuliert
-  location.href=MARKE_URL;
+  // Kein eigenes Login mehr — direkt zur echten Login-Seite, die schickt sofort den Code
+  location.href = MARKE_URL + '?email=' + encodeURIComponent(email) + '&send=1';
 }
 
 /* ---- Persistenz: einmal angemeldet = Prepage überspringen ---- */
