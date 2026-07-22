@@ -895,14 +895,23 @@
     </div>
   </div>
   <div id="baLog" style="display:none">
-    <div class="popup-body">
+    <div class="popup-body" id="baLogStep1">
       <div class="req-intro">Melde dich mit der E-Mail-Adresse deines Markenprofils an — wir schicken dir einen 6-stelligen Code. <span style="color:var(--muted)">(Dein Profil wurde vom Spreat-Team vorbereitet und freigegeben — z. B. nach deiner Anmeldung über unsere Kampagne.)</span></div>
       <div class="field"><label>E-Mail <span class="rq">*</span></label><input type="email" id="baLogEmail" placeholder="max@deinemarke.de"></div>
       <div class="form-err" id="baLogErr" style="display:none"></div>
     </div>
-    <div class="popup-foot">
+    <div class="popup-foot" id="baLogFoot1">
       <button class="btn btn-ghost" onclick="closeBrandAuth()">Abbrechen</button>
-      <button class="btn btn-primary" onclick="submitBrandLogin()">Einloggen</button>
+      <button class="btn btn-primary" id="baLogSendBtn" onclick="brandLoginSend()">Code senden</button>
+    </div>
+    <div class="popup-body" id="baLogStep2" style="display:none">
+      <div class="req-intro">Wir haben einen 6-stelligen Code an <b id="baLogSent"></b> geschickt. Gib ihn ein, um dich anzumelden.</div>
+      <input class="code-input" id="baLogCode" inputmode="numeric" maxlength="6" placeholder="······" style="width:100%;text-align:center;font-size:22px;letter-spacing:8px;padding:12px;border:1px solid var(--border);border-radius:10px">
+      <div class="form-err" id="baLogCodeErr" style="display:none;margin-top:8px"></div>
+    </div>
+    <div class="popup-foot" id="baLogFoot2" style="display:none">
+      <button class="btn btn-ghost" onclick="brandLoginBack()">← andere E-Mail</button>
+      <button class="btn btn-primary" id="baLogVerifyBtn" onclick="brandLoginVerify()">Anmelden</button>
     </div>
   </div>
   <div id="baThanks" style="display:none">
@@ -3123,13 +3132,43 @@ function submitBrandReg(){
   document.querySelector('#brandAuthPopup .ba-tabs').style.display='none';
   document.getElementById('baThanks').style.display='';
 }
-function submitBrandLogin(){
+/* Echtes Marken-Login direkt hier (einziger Login der Einheit). Nutzt den
+   vorhandenen Supabase-Client `sb` + verifyEmailCode(). Bei Erfolg -> Marken-Seite,
+   die die Session (im localStorage von Supabase) findet und das Dashboard zeigt. */
+let baLoginEmail='';
+function brandLoginBack(){
+  document.getElementById('baLogStep1').style.display='';
+  document.getElementById('baLogFoot1').style.display='';
+  document.getElementById('baLogStep2').style.display='none';
+  document.getElementById('baLogFoot2').style.display='none';
+}
+async function brandLoginSend(){
   const err=document.getElementById('baLogErr');
   const email=(gv('baLogEmail')||'').trim().toLowerCase();
   if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='Bitte eine gültige E-Mail-Adresse eingeben.'; err.style.display=''; return; }
   err.style.display='none';
-  // Kein eigenes Login mehr — direkt zur echten Login-Seite, die schickt sofort den Code
-  location.href = MARKE_URL + '?email=' + encodeURIComponent(email) + '&send=1';
+  const btn=document.getElementById('baLogSendBtn'); btn.disabled=true; btn.textContent='Sende …';
+  const {error}=await sb.auth.signInWithOtp({email});
+  btn.disabled=false; btn.textContent='Code senden';
+  if(error){ err.textContent='Code konnte nicht gesendet werden: '+error.message; err.style.display=''; return; }
+  baLoginEmail=email;
+  document.getElementById('baLogSent').textContent=email;
+  document.getElementById('baLogStep1').style.display='none';
+  document.getElementById('baLogFoot1').style.display='none';
+  document.getElementById('baLogStep2').style.display='';
+  document.getElementById('baLogFoot2').style.display='';
+  document.getElementById('baLogCode').focus();
+}
+async function brandLoginVerify(){
+  const err=document.getElementById('baLogCodeErr');
+  const code=(gv('baLogCode')||'').trim();
+  if(!code){ err.textContent='Bitte Code eingeben.'; err.style.display=''; return; }
+  const btn=document.getElementById('baLogVerifyBtn'); btn.disabled=true; btn.textContent='Prüfe …'; err.style.display='none';
+  const {error}=await verifyEmailCode(baLoginEmail, code);
+  btn.disabled=false; btn.textContent='Anmelden';
+  if(error){ err.textContent='Code ungültig oder abgelaufen.'; err.style.display=''; return; }
+  saveSession20({role:'marke', email:baLoginEmail, ts:Date.now()});
+  location.href=MARKE_URL; // Session liegt in Supabase-localStorage -> Dashboard direkt
 }
 
 /* ---- Persistenz: einmal angemeldet = Prepage überspringen ---- */
