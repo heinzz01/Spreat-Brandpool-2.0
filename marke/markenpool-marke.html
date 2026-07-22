@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spreat Markenpool — Marken-Sicht (Prototyp · Schusters Shrub)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --text:#16181d; --muted:#6b7280;
+    --border:#e6e8ec; --accent:#2CB461; --accent-soft:#e3f6ec; --accent-dk:#177a42;
+    --amber:#e5820e; --amber-soft:#fdf0dd; --red:#e5484d; --red-soft:#fbe7e7;
+    --radius:14px; --shadow:0 1px 3px rgba(16,18,29,.06),0 10px 30px rgba(16,18,29,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px}
+
+  .topbar{background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
+  .topbar .wrap{display:flex;align-items:center;gap:14px;height:60px}
+  .logo{display:flex;align-items:center;gap:9px}
+  .logo-img{height:24px;display:block;filter:brightness(0) saturate(100%)}
+  .logo-sub{font-weight:600;color:var(--muted);font-size:14px;letter-spacing:-.01em;padding-left:9px;border-left:1px solid var(--border)}
+
+  .tabs{display:flex;gap:22px;margin-left:auto;align-items:stretch;height:60px}
+  .tab{display:flex;align-items:center;padding:0 2px;font-size:14.5px;font-weight:600;color:var(--muted);background:none;border-bottom:2px solid transparent}
+  .tab.active{color:var(--text);border-bottom-color:var(--accent)}
+  .tab:hover{color:var(--text)}
+  .pane{display:none}.pane.active{display:block}
+  .pane-wrap{padding-top:22px}
+  @media(max-width:860px){.topbar .wrap{height:auto;flex-wrap:wrap;padding-top:10px}.tabs{height:auto;gap:16px;margin:6px 0 0 0;width:100%;flex-wrap:wrap;order:3}.tab{padding:6px 0}}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px}
+  .btn{padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;transition:.12s;background:var(--bg);border:1px solid var(--border);color:var(--text)}
+  .btn:hover{border-color:#c3cbd4}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-primary:hover{background:var(--accent-dk)}
+  .btn-primary:disabled{background:#c7ccd2;border-color:#c7ccd2;cursor:not-allowed}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted)}
+  .verif{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--accent-dk);background:var(--accent-soft);border:1px solid #bfe6cf;padding:5px 11px;border-radius:999px}
+  .verif svg{width:13px;height:13px;stroke:var(--accent-dk);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+  /* Completion banner */
+  .complete{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,#fff8e6,#fffdf7);border:1px solid #f2e2b3;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px}
+  .complete .cbar{flex:0 0 120px;height:8px;background:#f0e4c0;border-radius:99px;overflow:hidden}
+  .complete .cbar>i{display:block;height:100%;background:var(--amber);border-radius:99px}
+  .complete .ctxt{flex:1;font-size:13.5px;color:#7a5a00}
+  .complete .ctxt b{color:#5a4300}
+  .complete button{flex:0 0 auto}
+
+  /* Profil */
+  .profile-card{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
+  .brand-logo{width:66px;height:66px;border-radius:15px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;font-weight:800;font-size:22px;flex:0 0 auto;overflow:hidden}
+  .brand-logo img{width:100%;height:100%;object-fit:contain}
+  .brand-h{flex:1;min-width:240px}
+  .brand-h h1{font-size:26px;letter-spacing:-.02em}
+  .brand-h .sub{color:var(--muted);font-size:14.5px;margin-top:2px}
+  .brand-meta{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px;align-items:center}
+
+  /* Detail-Zeile (klickbar, wie echtes Modal) */
+  .detail-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+  .dchip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer;transition:.12s}
+  .dchip:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .dchip .k{color:var(--muted);font-weight:600}
+  .dchip .v{font-weight:700}
+  .dchip.empty{border-style:dashed;color:var(--muted)}
+  .dchip.empty .v{color:var(--accent-dk)}
+  .dchip .soc{display:inline-flex;gap:6px;align-items:center}
+  .dchip .soc a,.dchip .soc span{width:20px;height:20px;border-radius:6px;background:var(--bg);display:grid;place-items:center;font-size:12px}
+  .dinfo{width:17px;height:17px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);display:inline-grid;place-items:center;font-size:11px;font-style:italic;font-weight:700;cursor:help;line-height:1;flex:0 0 auto}
+  .dinfo:hover{border-color:var(--accent);color:var(--accent-dk)}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0 6px}
+  @media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+  .kpi .v{font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .kpi .l{color:var(--muted);font-size:13px;margin-top:3px}
+
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin:28px 0 6px;flex-wrap:wrap}
+  .sec-head h2{font-size:19px}
+  .sec-head .hint{color:var(--muted);font-size:13.5px}
+
+  /* Fokus-Kacheln */
+  .focus-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+  @media(max-width:760px){.focus-grid{grid-template-columns:1fr}}
+  .focus{border:1px solid var(--border);border-radius:var(--radius);background:var(--card);padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+  .focus .ft{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .focus .fd{color:var(--muted);font-size:13.5px;flex:1}
+  .focus .fstat{font-size:13px;font-weight:700;color:var(--accent-dk)}
+  .focus.warn .fstat{color:var(--amber)}
+
+  /* Markenpool-Vorschau (klickbar) */
+  .preview-note{background:#eef2ff;border:1px solid #c7d2fe;color:#3538cd;border-radius:10px;padding:10px 13px;font-size:13px;margin-bottom:12px}
+  .brow{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;cursor:pointer;transition:.12s;position:relative}
+  .brow:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+  .brow .edit-hint{position:absolute;top:12px;right:14px;font-size:12px;font-weight:700;color:var(--accent-dk);background:var(--accent-soft);border:1px solid #bfe6cf;padding:4px 10px;border-radius:999px}
+  .brow-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .brow-id{display:flex;align-items:center;gap:11px;flex:1 1 auto;min-width:0}
+  .brow-name{font-weight:800;font-size:16px}
+  .brow-tag{color:var(--muted);font-size:13px;max-width:560px}
+  .brow-meta{display:flex;gap:8px;flex-wrap:wrap;flex:1 1 100%;align-items:center;margin-top:2px}
+  .lockpill{background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--muted)}
+  .brow-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  @media(max-width:720px){.brow-strip{grid-template-columns:repeat(3,1fr)}}
+  .bp{border:1px solid var(--border);border-radius:11px;overflow:hidden;background:#fff}
+  .bp .t{aspect-ratio:1;display:grid;place-items:center;font-size:30px;background:#fff;position:relative}
+  .bp .t img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px}
+  .bp .n{font-size:11px;padding:6px 7px;color:var(--text);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .more{border:1px dashed #bcd9c8;border-radius:11px;display:grid;place-items:center;color:var(--accent-dk);font-weight:800;font-size:13px;text-align:center;background:var(--accent-soft)}
+
+  /* Händler-Karte */
+  .karte-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+  .legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .karte-grid{display:grid;grid-template-columns:1fr 420px;gap:18px}
+  @media(max-width:980px){.karte-grid{grid-template-columns:1fr}}
+  #map{height:600px;border-radius:var(--radius);border:1px solid var(--border);z-index:1}
+  .rmarker{width:18px;height:18px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+  .rcard-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .rphoto{aspect-ratio:16/10;border-radius:10px;position:relative;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#e9edf2,#dbe2ea);color:#8a94a2;font-size:26px}
+  .rphoto span{position:absolute;left:8px;bottom:8px;background:rgba(16,18,29,.72);color:#fff;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .rcard h3{font-size:18px}
+  .rrow{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+  .rrow:last-of-type{border-bottom:none}
+  .rrow .k{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+  .chip-nogo{display:inline-block;background:var(--red-soft);border:1px solid #f2c9cb;color:#b42318;border-radius:999px;padding:3px 9px;font-size:12px;margin:2px 4px 2px 0}
+  .chip-pref{display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 9px;font-size:12px;margin:2px 4px 2px 0}
+  .status-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+  .st-offen{background:var(--accent-soft);color:var(--accent-dk)}.st-selektiv{background:var(--amber-soft);color:#9a5600}.st-geschlossen{background:var(--red-soft);color:#b42318}
+  .rcard-empty{color:var(--muted);font-size:14px;text-align:center;padding:60px 20px}
+  .fit-badge{margin-left:auto;font-size:12px;font-weight:800;color:var(--accent-dk);background:var(--accent-soft);padding:4px 10px;border-radius:999px}
+  .rec{display:flex;align-items:flex-start;gap:14px;padding:16px 0;border-bottom:1px solid var(--border)}.rec:last-child{border-bottom:none}
+  .rec .rank{width:30px;height:30px;flex:0 0 auto;border-radius:50%;background:var(--accent-soft);color:var(--accent-dk);font-weight:800;display:grid;place-items:center;font-size:13px}
+  .rec .rc-name{font-weight:700;font-size:15px}.rec .rc-why{color:var(--muted);font-size:13px;margin-top:2px}
+  .seek-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .seek{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--card)}
+  .seek .who{font-weight:700;font-size:14px}.seek .what{margin:8px 0 12px;font-size:14px}.seek .what b{color:var(--accent-dk)}
+
+  /* ===== Editierbares Markenpool-Modal ===== */
+  .overlay{position:fixed;inset:0;background:rgba(16,18,29,.5);z-index:60;display:none}.overlay.open{display:block}
+  .poolmodal{position:fixed;z-index:65;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1020px,96vw);max-height:92vh;
+    background:var(--card);border-radius:18px;box-shadow:0 30px 80px rgba(16,18,29,.4);display:none;flex-direction:column;overflow:hidden}
+  .poolmodal.open{display:flex}
+  .pm-head{padding:20px 24px;border-bottom:1px solid var(--border)}
+  .pm-head-top{display:flex;gap:14px;align-items:flex-start}
+  .pm-x{margin-left:auto;background:var(--bg);border-radius:9px;width:34px;height:34px;font-size:16px;flex:0 0 auto}
+  .pm-title{font-size:22px;font-weight:800}
+  .pm-desc{color:var(--muted);font-size:13.5px;margin-top:4px;white-space:pre-wrap}
+  .pm-editlink{color:var(--accent-dk);font-weight:700;font-size:12.5px;cursor:pointer;margin-left:6px}
+  .pm-meta{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .pm-body{padding:0 24px 20px;overflow-y:auto}
+  .edit-banner{background:var(--accent-soft);border:1px solid #bfe6cf;color:var(--accent-dk);font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;margin:14px 0}
+  .catman{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;background:var(--bg)}
+  .catman h4{font-size:13.5px;margin-bottom:4px}
+  .catman .sub{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+  .cmrow{display:grid;grid-template-columns:1fr 84px 62px 36px;align-items:center;gap:8px;margin:8px 0}
+  .cmrow.cmhead{margin:12px 0 2px}
+  .cmrow.cmhead span{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .cmrow.cmhead span:nth-child(2){text-align:center}
+  .cmrow.cmhead span:nth-child(3){text-align:right}
+  .cmrow input.cn{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font:inherit;font-size:13.5px}
+  .cmrow input.cmarge{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 6px;font:inherit;font-size:13px;text-align:center}
+  .cmrow .cdel{background:var(--red-soft);color:#b42318;border:1px solid #f2c9cb;border-radius:8px;width:36px;height:36px;font-size:14px}
+  .cmrow .ccount{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+  .catman h4 .dinfo{margin-left:6px;vertical-align:middle}
+  @media(max-width:560px){.cmrow{grid-template-columns:1fr 74px 44px 34px}}
+  /* Modal-Mode-Toggle + Suche */
+  .pm-toggle{flex:0 0 auto;white-space:nowrap}
+  .pm-search{width:100%;border:1px solid var(--border);border-radius:10px;padding:11px 14px;font:inherit;font-size:14px;outline:none;margin:14px 0}
+  .pm-search:focus{border-color:var(--accent)}
+  /* Vorschau-Detailzeile (1:1 Brandpool) */
+  .detail-line{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+  .detail-line .dl{display:inline-flex;align-items:center;gap:7px}
+  .detail-line .dl b{color:var(--text);font-weight:700}
+  .detail-line .soc{display:inline-flex;gap:5px}
+  .detail-line .soc span{width:19px;height:19px;border-radius:6px;background:var(--bg);display:grid;place-items:center;font-size:11px}
+  /* Vorschau-Produktkarte */
+  .pc .pu-big{font-weight:800;font-size:15px}.pc .pu-big small{font-weight:600;color:var(--muted);font-size:11px;margin-left:4px}
+  .pc .pd{color:var(--muted);font-size:12px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .pc .star-view{position:absolute;top:8px;right:8px;color:#f5a623;font-size:16px;z-index:2}
+  .cmadd{display:flex;gap:8px;margin-top:10px}
+  .std-marge{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:10px}
+  .std-marge input{width:110px;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font:inherit}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .pill-cat{background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .pill-cat.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+  .pc{border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:var(--card)}
+  .pc .pt{aspect-ratio:1;background:#fff;display:grid;place-items:center;position:relative}
+  .pc .pt img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:10px}
+  .pc .star{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(16,18,29,.18);font-size:15px;display:grid;place-items:center;z-index:2}
+  .pc .star.on{color:#f5a623}.pc .star.off{color:#c7ccd2}
+  .pc .cattag{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.92);font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;color:var(--muted);z-index:2}
+  .pc .pb{padding:11px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .pc .pn{font-weight:700;font-size:13px;line-height:1.3}
+  .pc .pu{font-size:12.5px;color:var(--muted)}
+  .pc .pm-marge{font-size:12px;font-weight:700;color:var(--accent-dk);background:var(--accent-soft);border-radius:6px;padding:3px 7px;align-self:flex-start}
+  .pc .pedit{margin-top:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12.5px;font-weight:700}
+  .pc .pedit:hover{border-color:var(--accent);color:var(--accent-dk)}
+
+  /* kleine Edit-Modals */
+  .mini{position:fixed;z-index:70;left:50%;top:50%;transform:translate(-50%,-50%);width:min(460px,94vw);background:var(--card);border-radius:16px;box-shadow:0 30px 80px rgba(16,18,29,.4);display:none;flex-direction:column;max-height:90vh}
+  .mini.open{display:flex}
+  .mini-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center}
+  .mini-head h3{font-size:16px}.mini-head .x{margin-left:auto;background:var(--bg);border-radius:8px;width:32px;height:32px}
+  .mini-body{padding:16px 20px;overflow-y:auto}
+  .mini-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+  .field{display:flex;flex-direction:column;gap:5px;margin-top:12px}.field:first-child{margin-top:0}
+  .field label{font-size:12.5px;font-weight:700}.field label .opt{font-weight:400;color:var(--muted)}
+  .field input,.field textarea,.field select{border:1px solid var(--border);border-radius:9px;padding:9px 11px;font:inherit;font-size:13.5px;background:var(--card);outline:none}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+  .field textarea{resize:vertical;min-height:120px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ed-thumb{width:96px;height:96px;border:1px solid var(--border);border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
+  .ed-thumb img{width:100%;height:100%;object-fit:contain;padding:6px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#16181d;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:90;opacity:0;pointer-events:none;transition:.25s}.toast.show{opacity:1}
+  .proto-note{background:#fff8e6;border:1px solid #f2e2b3;color:#7a5a00;font-size:12.5px;padding:8px 14px;text-align:center}
+  .site-foot{max-width:1240px;margin:40px auto 60px;padding:22px 22px 0;border-top:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+  .site-foot a{color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .site-foot a:hover{color:var(--text);border-bottom-color:var(--border)}
+  .site-foot .sep{opacity:.5}
+
+  /* ==== 1:1 Brandpool-Modal-Vorschau (übernommen aus index.html) ==== */
+  .desc-clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .desc-open{display:block;-webkit-line-clamp:unset;overflow:visible}
+  .desc-more{display:inline-block;margin-top:3px;background:none;border:none;padding:0;color:var(--green);font-weight:700;font-size:12.5px;cursor:pointer}
+  .meta-chip{background:var(--bg);border-radius:9px;padding:7px 12px;font-size:12.5px}
+  .meta-chip b{font-weight:700}
+  .modal-actions{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  .web-link{background:none;border:none;padding:0 2px 3px;font:inherit;font-size:13.5px;font-weight:700;letter-spacing:-.01em;color:var(--text);text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px;white-space:nowrap;align-self:center}
+  .web-link .ar{transition:transform .2s ease;font-weight:400}
+  .web-link:hover .ar{transform:translateX(3px)}
+  .brand-details{width:100%;display:flex;justify-content:space-between;align-items:stretch;border-top:1px solid var(--border);margin-top:12px;padding:10px 0 0;font-size:11px;letter-spacing:.02em}
+  .brand-details .bd-i{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;position:relative}
+  .brand-details .bd-i+.bd-i::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:1em;width:1px;background:var(--border)}
+  .brand-details .bd-k{color:#9aa0a8}
+  .brand-details .bd-v{color:#727880;font-weight:600}
+  .brand-details .bd-v.off{color:#c2c7ce}
+  .brand-details .bd-sset{display:inline-flex;align-items:center;gap:7px}
+  .brand-details .bd-sic{width:14px;height:14px;color:#9298a0;display:inline-flex}
+  .brand-details .bd-sic svg{width:14px;height:14px}
+  .brand-details .bd-sic:hover{color:var(--accent)}
+  .brand-details .bd-link{color:var(--accent);border-bottom:1px dotted currentColor;cursor:pointer;background:none;border-top:0;border-left:0;border-right:0;padding:0;font:inherit}
+  @media(max-width:640px){.brand-details{flex-wrap:wrap;gap:4px 14px}.brand-details .bd-i{flex:1 1 42%;justify-content:flex-start}.brand-details .bd-i+.bd-i::before{display:none}}
+  .cats-wrap{display:flex;align-items:center;gap:4px;width:100%;min-width:0}
+  .cats{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;flex:1 1 auto;min-width:0;scrollbar-width:none;scroll-behavior:smooth}
+  .cats::-webkit-scrollbar{display:none}
+  .cats-arrow{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:15px;line-height:1;display:grid;place-items:center;color:var(--text)}
+  .cats-arrow:hover{background:#eef0f3}
+  .cat-pill{background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;flex:0 0 auto;cursor:pointer}
+  .cat-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .cat-pill .cat-star{color:#f5b301;font-size:11px}
+  .cat-pill.active .cat-star{color:#fff}
+  .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+  .prod-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:var(--card)}
+  .prod-thumb{aspect-ratio:1;display:grid;place-items:center;font-size:40px;position:relative;background:#fff}
+  .prod-thumb img{width:100%;height:100%;object-fit:contain;padding:8px}
+  .prod-thumb .ts-badge{position:absolute;top:7px;right:7px;z-index:4;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(16,18,29,.18);display:grid;place-items:center;font-size:12px;color:#f5b301}
+  .prod-cat{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.92);font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;color:var(--muted)}
+  .prod-info{padding:11px 12px;display:flex;flex-direction:column;gap:7px;flex:1}
+  .prod-name{font-size:13px;font-weight:600;line-height:1.35}
+  .prod-desc{font-size:11px;color:var(--muted);line-height:1.42;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .prod-price{display:flex;align-items:baseline;gap:6px;margin-top:auto}
+  .prod-price .uvp{font-size:16px;font-weight:800}
+  .prod-price .uvp-l{font-size:10.5px;color:var(--muted)}
+  .prod-margin{font-size:11.5px;color:var(--green);font-weight:700;background:var(--green-soft);padding:3px 7px;border-radius:6px;align-self:flex-start}
+  .prod-btn{padding:8px;border-radius:8px;font-size:12.5px;font-weight:700;background:var(--accent);color:#fff;border:none;cursor:pointer}
+  .prod-btn:hover{background:var(--accent-dk)}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="wrap">
+  <div class="logo">
+    <img class="logo-img" src="https://cdn.prod.website-files.com/6675b8a846c2cbec25f829cb/6675cb10048c54618b55d8df_Logo_Spreat_SVG_3920px.svg" alt="Spreat">
+    <span class="logo-sub">Brandpool</span>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="profil" onclick="switchTab('profil',this)">Mein Markenprofil</button>
+    <button class="tab" data-tab="karte" onclick="switchTab('karte',this)">Händler-Karte</button>
+    <button class="tab" data-tab="empfehlungen" onclick="switchTab('empfehlungen',this)">Empfehlungen</button>
+    <button class="tab" data-tab="gesuche" onclick="switchTab('gesuche',this)">Bedarf</button>
+  </nav>
+  <div id="acctArea" style="display:flex;align-items:center;gap:10px;margin-left:16px;font-size:13px;white-space:nowrap"></div>
+</div></div>
+
+<div class="wrap pane-wrap">
+
+  <!-- TAB: Mein Markenprofil -->
+  <div class="pane active" id="pane-profil">
+    <div id="completeBox"></div>
+
+    <div class="sec-head"><h2>Deine Markenpool-Ansicht</h2><span class="hint">Genau so sehen dich die Händler. Klick rein für die Detailansicht — dort bearbeitest du alles.</span></div>
+    <div id="poolPreview"></div>
+
+    <div class="sec-head"><h2>Hauptaufgaben</h2><span class="hint">Womit du dein Profil am stärksten machst.</span></div>
+    <div class="focus-grid">
+      <div class="focus" id="focusBest">
+        <div class="ft">★ Bestseller angeben</div>
+        <div class="fd">Deine Topseller stehen im Pool ganz vorn und werden Händlern zuerst gezeigt.</div>
+        <div class="fstat" id="bestStat"></div>
+        <button class="btn btn-primary" onclick="openPool('edit','bestseller')" style="align-self:flex-start">Bestseller wählen</button>
+      </div>
+      <div class="focus" id="focusDesc">
+        <div class="ft">✍ Markenbeschreibung</div>
+        <div class="fd">Deine Geschichte entscheidet, ob ein Händler dich ins Sortiment nimmt.</div>
+        <div class="fstat" id="descStat"></div>
+        <button class="btn btn-primary" onclick="openPool('edit','beschreibung')" style="align-self:flex-start">Beschreibung bearbeiten</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: Händler-Karte -->
+  <div class="pane" id="pane-karte">
+    <div class="karte-top">
+      <select class="btn" id="branchFilter" onchange="renderMap()" style="min-width:180px"><option value="">Alle Branchen</option></select>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent)"></span>offen für neue Marken</span>
+        <span><span class="dot" style="background:var(--amber)"></span>selektiv</span>
+        <span><span class="dot" style="background:var(--red)"></span>zurzeit geschlossen</span>
+      </div>
+    </div>
+    <div class="karte-grid">
+      <div id="map"></div>
+      <div class="card rcard" id="rcard"><div class="rcard-empty">Wähl links einen Händler auf der Karte, um sein Profil zu sehen.</div></div>
+    </div>
+  </div>
+
+  <!-- TAB: Empfehlungen -->
+  <div class="pane" id="pane-empfehlungen">
+    <div class="sec-head"><h2>Händler für dich</h2><span class="hint">Sortiert nach Fit — Branche, Positionierung, Präferenzen, Offenheits-Status.</span></div>
+    <div class="card" id="recList"></div>
+  </div>
+
+  <!-- TAB: Gesuche -->
+  <div class="pane" id="pane-gesuche">
+    <div class="sec-head"><h2>Offener Bedarf</h2><span class="hint">Händler, die gerade aktiv etwas suchen — reagier direkt.</span></div>
+    <div class="seek-grid" id="seekGrid"></div>
+  </div>
+</div>
+
+<footer class="site-foot">
+  <span>© <span id="footYear"></span> Spreat</span>
+  <span class="sep">·</span>
+  <a href="https://www.spreat.com/imprint" target="_blank" rel="noopener">Impressum</a>
+  <span class="sep">·</span>
+  <a href="https://www.spreat.com" target="_blank" rel="noopener">spreat.com</a>
+</footer>
+
+<!-- Editierbares Markenpool-Modal -->
+<div class="overlay" id="overlay" onclick="closePool()"></div>
+<div class="poolmodal" id="poolModal">
+  <div class="pm-head">
+    <div class="pm-head-top">
+      <div class="brand-logo" id="pmLogo" style="width:52px;height:52px;font-size:16px;border-radius:12px"></div>
+      <div style="flex:1;min-width:0">
+        <div class="pm-title" id="pmTitle"></div>
+        <div class="pm-desc" id="pmDesc"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex:0 0 auto">
+        <button class="btn pm-toggle" id="pmToggle" onclick="togglePoolMode()"></button>
+        <button class="pm-x" onclick="closePool()">✕</button>
+      </div>
+    </div>
+    <div class="pm-meta" id="pmMeta"></div>
+    <div id="pmDetailRow"></div>
+  </div>
+  <div class="pm-body">
+    <div class="edit-banner" id="editBanner">✎ Bearbeitungsmodus — alle Änderungen wirken sofort auf deine Pool-Vorschau (Demo, im Speicher).</div>
+    <input class="pm-search" id="poolSearch" placeholder="Produkt suchen …" oninput="renderPoolGrid()">
+    <div class="catman" id="catman"></div>
+    <div class="pills" id="poolPills"></div>
+    <div class="pgrid" id="poolGrid"></div>
+  </div>
+</div>
+
+<!-- Produkt-Edit -->
+<div class="mini" id="prodModal">
+  <div class="mini-head"><h3>Produkt bearbeiten</h3><button class="x" onclick="closeMini('prodModal')">✕</button></div>
+  <div class="mini-body">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div class="ed-thumb" id="edThumb">📦</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+        <label class="btn" style="text-align:center">Bild hochladen<input type="file" accept="image/*" hidden onchange="edUpload(this)"></label>
+        <input id="edImgUrl" placeholder="oder Bild-URL einfügen" oninput="edPreviewUrl()" style="border:1px solid var(--border);border-radius:9px;padding:9px 11px;font:inherit;font-size:13px">
+      </div>
+    </div>
+    <div class="field"><label>Produktname</label><input id="edName"></div>
+    <div class="fgrid">
+      <div class="field"><label>UVP (€)</label><input id="edUvp" type="number" step="0.01" min="0"></div>
+      <div class="field"><label>Kategorie</label><select id="edKat"></select></div>
+    </div>
+    <div class="field"><label>Marge / Laden-Provision (%) <span class="opt">— leer = Laden-Standard bzw. Kategorie</span></label>
+      <input id="edMarge" type="number" step="1" min="0" max="100" placeholder="Standard"></div>
+    <div class="field"><label>Beschreibung</label><textarea id="edDesc" style="min-height:80px"></textarea></div>
+    <label style="display:flex;align-items:center;gap:9px;margin-top:12px;font-size:13.5px;font-weight:600"><input type="checkbox" id="edFeatured" style="accent-color:var(--accent)"> ★ Als bestätigten Topseller markieren</label>
+  </div>
+  <div class="mini-foot"><button class="btn" onclick="closeMini('prodModal')">Abbrechen</button><button class="btn btn-primary" onclick="saveProd()">Speichern</button></div>
+</div>
+
+<!-- Beschreibung-Edit -->
+<div class="mini" id="descModal">
+  <div class="mini-head"><h3>Markenbeschreibung</h3><button class="x" onclick="closeMini('descModal')">✕</button></div>
+  <div class="mini-body">
+    <div class="field"><label>Kurzbeschreibung <span class="opt">(1 Satz, Listenansicht)</span></label>
+      <textarea id="dsKurz" maxlength="150" style="min-height:60px" oninput="updateDescCount()"></textarea>
+      <div class="sub-hint" id="dsKurzCount"></div></div>
+    <div class="field"><label>Lange Beschreibung <span class="opt">(Marken-Modal, Absätze mit Leerzeile)</span></label>
+      <textarea id="dsLang" maxlength="1000" style="min-height:180px" oninput="updateDescCount()"></textarea>
+      <div class="sub-hint" id="dsLangCount"></div></div>
+  </div>
+  <div class="mini-foot"><button class="btn" onclick="closeMini('descModal')">Abbrechen</button><button class="btn btn-primary" onclick="saveDesc()">Speichern</button></div>
+</div>
+
+<!-- Detailfeld-Edit -->
+<div class="mini" id="fieldModal">
+  <div class="mini-head"><h3 id="fmTitle">Feld bearbeiten</h3><button class="x" onclick="closeMini('fieldModal')">✕</button></div>
+  <div class="mini-body" id="fmBody"></div>
+  <div class="mini-foot"><button class="btn" onclick="closeMini('fieldModal')">Abbrechen</button><button class="btn btn-primary" onclick="saveField()">Speichern</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ============ ECHTE SCHUSTERS-DATEN ============ */
+const brand = {
+  name:'Schusters Shrub',
+  logo:'https://lzgrcnkatchkrvlrjnxa.supabase.co/storage/v1/object/public/markenpool/logos/schustersshrub.png',
+  kurz:'Außergewöhnliche Sirupe mit Geschichte: Shrubs aus Früchten und Kräutern, die bis zu drei Monate in regionalem Bio-Apfelessig ziehen. Ohne Aroma-, Farb- und Konservierungsstoffe, 3 Jahre haltbar. Familienmanufaktur aus Franken.',
+  beschreibung:'Wir sind eine kleine Familienmanufaktur aus Franken und haben uns auf außergewöhnliche Sirupe mit unverfälschtem, natürlichem Geschmack spezialisiert. Dafür haben wir ein altes Sirup-Rezept wiederentdeckt: den Shrub. Früchte und Kräuter ziehen bis zu drei Monate in regionalem Bio-Apfelessig. Die natürliche Säure löst dabei schonend die Aromen. Anschließend wird der Auszug mit Zucker verfeinert und heiß abgefüllt.\n\nDas Ergebnis: ein intensiv fruchtiger Sirup ohne zugesetzte Aroma-, Farb- und Konservierungsstoffe – und dennoch 3 Jahre haltbar, auch nach dem Öffnen und ohne Kühlung.',
+  welt:'Food & Feinkost › Lebensmittel & alkoholfreie Getränke',
+  defaultMargin:35, avgCart:12.00, website:'https://www.schusters-shrub.de/', verified:true,
+  gruendungsjahr:'2012', instagram:'schusters.spezialitaeten', tiktok:'', facebook:'Schusters Spezialitäten', linkedin:'',
+  ean:'Ja', eurolochung:'Nein',
+  bereits_gelistet:'Feinkostläden, Hofläden, Geschenkeläden, Concept Stores, Metzgereien, Cafés, Buchhandel, Möbelgeschäfte',
+  jahresumsatz:'', werbebudget:'',           // Bänder, im Original noch leer → Ausfüll-Zustand demonstrieren
+  display:'', displayNote:''                 // eigener Aufsteller/Display lieferbar?
+};
+const UMSATZ_BANDS=['0–100.000 €','100.000–250.000 €','250.000–500.000 €','500.000–1 Mio €','über 1 Mio €'];
+const BUDGET_BANDS=['unter 1.000 €','1.000–10.000 €','10.000–50.000 €','über 50.000 €'];
+// Kategorien (Reihenfolge wie im echten Modal), Marge-Override optional (null = Laden-Standard)
+let categories = [
+  {name:'Genusskompliz*innen', margin:null},
+  {name:'Glühwein & Winter', margin:null},
+  {name:'Shrub!', margin:null},
+  {name:'Sommer Spritz', margin:null}
+];
+const catDesc = {
+  'Sommer Spritz':'Fruchtsirup auf Essigbasis — spritzig für Sommergetränke & Spritz.',
+  'Genusskompliz*innen':'Herzhafter Shrub zum Verfeinern, Grillen & Kochen.',
+  'Shrub!':'Intensiv fruchtiger Shrub — Monate in Bio-Apfelessig gezogen, ohne Zusätze.',
+  'Glühwein & Winter':'Winterlicher Sirup für Glühwein & heiße Drinks.'
+};
+const RAW = [
+["Sirup für Sommer Spritz Hibiskus-Himbeer 0,25 l",12.90,"Sommer Spritz","https://www.schusters-shrub.de/wp-content/uploads/2024/03/Shrub_Hibiskus-Himbeere_025lneu2.jpg",1],
+["Sirup für Sommer Spritz Rosmarin-Grapefruit 0,25 l",12.90,"Sommer Spritz","https://www.schusters-shrub.de/wp-content/uploads/2025/03/Freisteller-Rosi-Grapefruit-quad.png.jpg",1],
+["Sirup für Sommer Spritz Basilikum-Limette 0,25 l",12.90,"Sommer Spritz","https://www.schusters-shrub.de/wp-content/uploads/2026/03/Sommerspritz-Bas-Lim-Quad-025l.jpg",1],
+["BBQ Bro 0,25 l",12.90,"Genusskompliz*innen","https://www.schusters-shrub.de/wp-content/uploads/2025/12/BBQBro_quadrat.jpg",1],
+["Salat Kamerad 0,25 l",12.90,"Genusskompliz*innen","https://www.schusters-shrub.de/wp-content/uploads/2025/11/Salatkamerad_quadrat.jpg",1],
+["Sirup für Sommer Spritz Basilikum-Limette 0,1 l",8.90,"Sommer Spritz","https://www.schusters-shrub.de/wp-content/uploads/2026/03/Sommerspritz-Bas-Lim-Quad-025l.jpg",0],
+["Secco Verführerin 0,25 l",12.90,"Genusskompliz*innen","https://www.schusters-shrub.de/wp-content/uploads/2025/12/Seccoverf_quadrat.jpg",0],
+["Shrub! Apfel-Quitte 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_apfel_quite.jpg",0],
+["Shrub! Apfel-Zimt 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_apfel_zimt_rechteck.jpg",0],
+["Shrub! Bärlauch 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2013/11/Baerlauch-025l-quad.jpg",0],
+["Shrub! Blutorange 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_blutorange_thumb.jpg",0],
+["Shrub! Heidelbeer-Himbeer 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_heidelbeer_himbeere_rechteck.jpg",0],
+["Shrub! Himbeere 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_himbeere_rechteck.jpg",0],
+["Shrub! Holunderblüte 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_holunder_rechteck.jpg",0],
+["Shrub! Ingwer 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_ingwer_rechteck.jpg",0],
+["Shrub! Knoblauch 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_knoblauch_rechteck.jpg",0],
+["Shrub! Lavendel-Himbeere 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_lavendel_himbeere_rechteck.jpg",0],
+["Shrub! Orange-Cardamom 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/orange_cardamom_025l_2.jpg",0],
+["Shrub! Oriental 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/oriental_025l.jpg",0],
+["Shrub! Quitte 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_quitte_thumb.jpg",0],
+["Shrub! Rosmarin-Zitrone 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_rosmarin_zitrone_rechteck.jpg",0],
+["Shrub! Rote Zwiebel 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_rote-zwiebel_rechteck.jpg",0],
+["Shrub! Schwarze Johannisbeere 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/schusters_shrub_schwarze_johannisbeere-e1589630326178.jpg",0],
+["Shrub! Winterzauber Quitte 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2023/01/WinterzauberQuitte_025l_quad.png",0],
+["Shrub! Zitrone-Thymian 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2021/05/Zitrone-Thymian-Website.png",0],
+["Shrub! Wacholder & friends 0,25 l",11.90,"Shrub!","https://www.schusters-shrub.de/wp-content/uploads/2022/01/shrub_wacholder_and_friends_rechteck.jpg",0],
+["Sirup für Glühwein – modern 0,25 l",11.90,"Glühwein & Winter","https://www.schusters-shrub.de/wp-content/uploads/2022/10/Rezeptkarte-Sirup-fuer-Gluehwein-Vorderseiteklein.png",0],
+["Sirup für Glühwein – modern 0,5 l",18.90,"Glühwein & Winter","https://www.schusters-shrub.de/wp-content/uploads/2022/10/Rezeptkarte-Sirup-fuer-Gluehwein-Vorderseiteklein.png",0],
+["Sirup für Glühwein – modern 0,1 l",8.90,"Glühwein & Winter","https://www.schusters-shrub.de/wp-content/uploads/2022/10/Rezeptkarte-Sirup-fuer-Gluehwein-Vorderseiteklein.png",0],
+["Sirup für Glühwein – traditionell 0,25 l",11.90,"Glühwein & Winter","https://www.schusters-shrub.de/wp-content/uploads/2015/10/Sirup_fuer_gluehwein_klassisch_025_300x300.jpg",0],
+["Sirup für Glühwein – traditionell 0,5 l",18.90,"Glühwein & Winter","https://www.schusters-shrub.de/wp-content/uploads/2015/10/Sirup_fuer_gluehwein_klassisch_025_300x300.jpg",0],
+["Lebkuchensirup 0,25 l",11.90,"Glühwein & Winter","https://www.schusters-shrub.de/wp-content/uploads/2024/09/LebkuchenSirup_025lWebsite.jpg",0],
+["Lebkuchensirup 0,1 l",8.90,"Glühwein & Winter","https://www.schusters-shrub.de/wp-content/uploads/2024/09/LebkuchenSirup_025lWebsite.jpg",0],
+["Sirup für Sommer Spritz Hibiskus-Himbeer 0,1 l",8.90,"Sommer Spritz","https://www.schusters-shrub.de/wp-content/uploads/2024/03/Shrub_Hibiskus-Himbeere_025lneu2.jpg",0],
+["Sirup für Sommer Spritz Rosmarin-Grapefruit 0,1 l",8.90,"Sommer Spritz","https://www.schusters-shrub.de/wp-content/uploads/2025/03/Freisteller-Rosi-Grapefruit-quad.png.jpg",0]
+];
+let products = RAW.map((r,i)=>({id:i+1, name:r[0], uvp:r[1], kat:r[2], img:r[3], featured:!!r[4], margin:null, desc:''}));
+
+/* Händler (geteiltes Datenmodell) — für Karte/Empfehlungen/Gesuche */
+const retailers = [
+  {name:'Feinkost am Dom', city:'Köln', lat:50.941, lng:6.958, stores:1, area:80, branch:'Feinkost', pricing:'Premium', volume:'20.000–50.000 €', volVerified:true, noGos:['Discount'], prefs:['Feinkost','Regional','Bio'], status:'offen', verified:true, seeking:['Alkoholfreie Aperitif-Sirupe']},
+  {name:'Hofladen Sonnenhof', city:'Münster', lat:51.962, lng:7.626, stores:1, area:120, branch:'Hofladen', pricing:'Premium', volume:'5.000–20.000 €', volVerified:false, noGos:[], prefs:['Regional','Bio','Genuss'], status:'offen', verified:true, seeking:[]},
+  {name:'Nordlicht Concept', city:'Hamburg', lat:53.551, lng:9.993, stores:2, area:140, branch:'Concept Store', pricing:'Premium', volume:'20.000–50.000 €', volVerified:true, noGos:[], prefs:['Design','Nachhaltig','Genuss'], status:'offen', verified:true, seeking:['Geschenkideen Weihnachten']},
+  {name:'Genussboutique', city:'Berlin', lat:52.520, lng:13.405, stores:1, area:70, branch:'Feinkost', pricing:'Luxus', volume:'50.000–100.000 €', volVerified:true, noGos:['Massenware'], prefs:['Feinkost','Genuss','Bio'], status:'selektiv', verified:true, seeking:[]},
+  {name:'Küchenkontor', city:'Leipzig', lat:51.339, lng:12.373, stores:1, area:95, branch:'Küche & Haushalt', pricing:'Premium', volume:'5.000–20.000 €', volVerified:false, noGos:[], prefs:['Küche','Genuss'], status:'offen', verified:false, seeking:[]},
+  {name:'Alpen Delikatessen', city:'München', lat:48.137, lng:11.575, stores:1, area:110, branch:'Feinkost', pricing:'Luxus', volume:'über 100.000 €', volVerified:true, noGos:['Discount'], prefs:['Feinkost','Regional'], status:'selektiv', verified:true, seeking:[]},
+  {name:'Schwarzwald Laden', city:'Freiburg', lat:47.999, lng:7.842, stores:1, area:60, branch:'Regionales', pricing:'Premium', volume:'klein', volVerified:false, noGos:['Import'], prefs:['Regional','Bio'], status:'geschlossen', verified:false, seeking:[]},
+  {name:'Marktstube Neckar', city:'Stuttgart', lat:48.775, lng:9.182, stores:1, area:100, branch:'Feinkost', pricing:'Premium', volume:'20.000–50.000 €', volVerified:false, noGos:[], prefs:['Regional','Genuss'], status:'offen', verified:false, seeking:['Winter-/Glühwein-Sortiment']},
+  {name:'Elbe & Co', city:'Hannover', lat:52.375, lng:9.732, stores:1, area:95, branch:'Concept Store', pricing:'Premium', volume:'20.000–50.000 €', volVerified:true, noGos:['Tabak'], prefs:['Design','Genuss'], status:'geschlossen', verified:true, seeking:[]},
+  {name:'Ruhr Feinkost', city:'Dortmund', lat:51.514, lng:7.466, stores:2, area:200, branch:'Feinkost', pricing:'Masse', volume:'50.000–100.000 €', volVerified:false, noGos:[], prefs:['Genuss','Alltag'], status:'offen', verified:false, seeking:[]},
+  // freenet = Verbund: EIN Händlerprofil, aber alle Standorte als Pins (locations.json).
+  // Anfrage nur an den Verbund als Ganzes — einzelne Filialen sind nicht anfragbar.
+  {name:'freenet', city:'deutschlandweit', lat:51.16, lng:10.45, stores:419, area:70, branch:'Telekommunikation & Zubehör', pricing:'Preisbewusst, Solide Mitte', volume:'über 100.000 €', volVerified:false, noGos:[], prefs:['Technik','Zubehör','Alltag'], status:'offen', verified:true, seeking:[], verbund:true}
+];
+/* freenet-Standorte — eingebettet (Quelle: spreat.rapto-sports.com/locations.json, Stand 2026-07-21).
+   Eingebettet statt fetch, damit die Pins auch bei file:// / offline erscheinen (CORS). [lat,lon] */
+const FN_LOCS=[[50.7764,6.0839],[48.8376,10.0930],[48.8192,11.8467],[51.3604,8.8057],[52.0762,7.0049],[51.7628,7.8909],[52.5782,13.5739],[51.9869,9.8253],[50.9852,12.4341],[49.4544,11.8474],[53.0173,13.9982],[50.5789,13.0106],[49.2889,10.5598],[51.0228,11.5130],[51.4002,8.0606],[49.9707,9.1385],[51.7560,11.4621],[50.5088,12.4002],[48.3690,10.8980],[53.5095,7.3583],[50.8604,9.6768],[50.2284,8.6130],[49.8153,7.9125],[50.6501,7.9482],[52.2014,8.7981],[52.0772,8.7555],[53.9369,10.3045],[50.9075,6.1826],[49.8916,10.8868],[52.3022,9.4624],[51.1809,14.4276],[49.9446,11.5744],[49.6977,8.6288],[54.1162,12.2022],[50.9929,7.1277],[52.5174,13.3951],[52.6787,13.5881],[51.7940,11.7374],[52.0191,8.5310],[51.9973,8.4985],[48.9126,8.2540],[49.9733,6.5249],[51.8383,6.6149],[51.4818,7.2197],[50.7353,7.1025],[51.8445,6.8583],[51.1242,12.4999],[51.5216,6.9292],[52.8455,13.2461],[52.4108,12.5498],[52.2647,10.5236],[53.0758,8.8072],[53.5505,8.5852],[51.3956,8.5678],[49.1241,8.5980],[50.8291,6.9037],[53.2760,12.6459],[49.9600,6.3512],[48.6850,9.0113],[54.3164,9.6711],[52.2005,8.5829],[51.5646,7.3106],[52.6241,10.0811],[50.8324,12.9189],[52.8461,8.0439],[50.2582,10.9646],[51.9459,7.1691],[51.7567,14.3357],[53.8688,8.6983],[52.5406,13.0603],[49.8728,8.6512],[48.7814,13.0006],[51.5256,12.3429],[53.0481,8.6286],[50.4565,7.7885],[51.8310,12.2431],[51.9363,8.8792],[51.5624,6.7345],[48.7180,10.7807],[48.4664,8.5013],[51.6604,6.9647],[51.5142,7.4653],[51.5705,7.4328],[51.4579,7.4328],[51.0493,13.7381],[51.1111,13.7582],[51.0875,13.6856],[51.0111,13.6856],[50.9875,13.7582],[51.0200,13.7996],[51.4350,6.7596],[48.4515,9.0578],[51.1167,13.1167],[51.8284,7.2791],[50.8032,6.4821],[51.2254,6.7763],[51.2904,6.7763],[51.2254,6.7113],[51.1604,6.7763],[52.8351,13.7997],[54.4716,9.8375],[48.2829,9.7262],[50.9747,10.3194],[51.0008,10.3621],[50.9691,11.8961],[52.1449,14.6294],[48.9616,10.1320],[53.7532,9.6525],[53.3671,7.2058],[51.8322,6.2428],[52.1747,7.5302],[48.3064,11.9077],[50.9778,11.0287],[51.0810,6.3161],[49.5892,10.9812],[53.6468,7.6118],[51.4582,7.0158],[48.7428,9.3072],[50.6613,6.7871],[51.6315,13.7074],[54.7833,9.4333],[49.5353,8.3541],[50.1106,8.6821],[52.3412,14.5495],[50.9169,13.3429],[47.9961,7.8494],[48.4008,11.7440],[48.4638,8.4112],[50.3283,8.7476],[50.2621,8.6249],[50.5542,9.6770],[50.7606,13.8682],[49.4886,10.9587],[52.4277,9.6005],[53.4375,10.3678],[51.5170,6.3228],[51.5110,7.0960],[50.8766,12.0833],[50.5809,8.6938],[51.5719,6.9877],[50.9495,10.7014],[54.0958,13.3815],[50.7784,12.0764],[52.0842,9.7752],[51.2912,13.5317],[51.0278,7.5631],[48.7031,9.6541],[51.1563,14.9910],[51.5328,9.9352],[53.7936,12.1765],[51.9167,8.4043],[51.3583,7.4733],[51.4824,11.9713],[53.5502,10.0013],[52.1040,9.3562],[51.6813,7.8191],[50.1329,8.9170],[51.4570,9.6671],[52.3745,9.7386],[54.1949,9.0928],[49.4094,8.6947],[48.6768,10.1529],[49.1423,9.2187],[51.0654,6.0984],[52.2087,11.0030],[50.7754,7.2848],[52.6376,13.2058],[52.1152,8.6711],[51.5380,7.2200],[51.5380,7.1550],[51.5942,7.1368],[51.1674,6.9307],[52.1527,9.9518],[50.3188,11.9163],[50.3188,11.8513],[50.0949,8.4229],[50.8017,12.7087],[49.3182,7.3340],[51.4333,14.2501],[51.4333,14.1851],[54.4854,9.0538],[51.7939,9.3489],[52.2775,7.7151],[49.7107,7.3137],[50.6868,10.9142],[48.7630,11.4250],[51.3747,7.7000],[53.9194,9.5172],[50.9232,11.5778],[50.9300,11.5877],[49.4432,7.7690],[53.8372,9.9615],[51.5918,7.6617],[51.5018,6.5479],[49.0069,8.4034],[51.3158,9.4978],[47.8804,10.6222],[50.1344,8.4532],[47.7267,10.3169],[51.5803,6.2456],[54.3227,10.1356],[48.6481,9.4510],[51.7896,6.1376],[50.3533,7.5944],[51.2559,8.8427],[51.3331,6.5623],[50.9384,6.9600],[51.7510,11.9737],[52.3077,9.8133],[51.9914,8.7920],[54.1041,12.0143],[49.1983,8.1123],[48.0497,10.8769],[48.5362,12.1517],[51.1009,6.9459],[52.4431,9.7390],[49.0765,9.1462],[53.2050,7.4595],[51.3406,12.3747],[52.0281,8.9013],[52.1888,7.8509],[51.0580,6.9902],[51.0310,6.9752],[53.1414,8.9068],[50.3880,8.0635],[52.5225,7.3166],[51.6747,8.3472],[52.0902,13.1742],[48.8954,9.1895],[48.8954,9.1245],[49.4704,8.4382],[53.3300,11.4994],[51.8667,12.6468],[52.3027,8.6183],[53.8664,10.6847],[53.9227,10.6522],[53.8102,10.6522],[51.2181,7.6397],[53.2487,10.4079],[51.6142,7.5228],[52.1315,11.6401],[49.9995,8.2736],[49.4893,8.4673],[50.8090,8.7705],[50.3119,12.3292],[51.6486,7.0829],[50.3284,7.2215],[52.1950,8.3475],[47.9863,10.1808],[51.4378,7.7954],[52.6947,7.2910],[51.3564,11.9961],[49.4427,6.6375],[51.3437,8.2859],[48.5397,9.2831],[47.9939,9.1122],[47.7900,11.8335],[52.2881,8.9169],[51.4513,6.6284],[50.4362,7.8302],[49.3521,9.1460],[51.1947,6.4354],[51.2094,10.4589],[51.4273,6.8829],[48.1371,11.5754],[51.9625,7.6252],[51.1526,11.8099],[48.3953,10.0005],[53.5574,13.2603],[48.3128,11.6640],[49.2801,11.4585],[54.0703,9.9884],[50.5456,8.1025],[52.9244,12.8093],[51.1982,6.6916],[49.3540,8.1350],[53.3617,13.0630],[50.4302,7.4663],[52.6488,9.2578],[53.5942,7.2067],[53.7090,9.9892],[51.5052,10.7925],[52.4360,7.0708],[51.7649,9.8589],[48.8517,10.4886],[49.4539,11.0773],[51.4696,6.8514],[52.7079,13.1099],[48.3098,11.2006],[50.1055,8.7611],[48.4696,7.9429],[53.1390,8.2146],[52.7529,13.2458],[52.0267,11.2278],[52.2720,8.0476],[53.2282,8.7948],[51.7177,8.7527],[48.5748,13.4610],[52.3119,10.2521],[53.0755,11.8212],[52.3757,8.9668],[48.8909,8.7026],[48.8909,8.6376],[53.7279,9.6980],[49.1997,7.6088],[50.9617,13.9387],[50.9617,13.8737],[50.4951,12.1347],[50.4951,12.0697],[52.4009,13.0591],[52.4009,12.9941],[53.3167,13.8666],[51.7855,11.1520],[54.0111,9.2115],[48.8585,8.2040],[51.2973,6.8494],[51.6144,7.1979],[49.0195,12.0975],[51.1799,7.1944],[54.3003,9.6650],[48.4920,9.2114],[52.2798,7.4374],[51.3038,13.3088],[52.1874,9.0805],[47.8539,12.1273],[54.0887,12.1400],[54.1301,12.0655],[54.1801,12.0824],[50.7206,11.3402],[50.8964,7.1825],[47.6292,9.9585],[49.2344,6.9964],[49.3165,6.7498],[52.1504,10.3593],[52.8528,11.1540],[49.9107,9.0082],[54.0460,9.4812],[51.0779,14.4283],[54.5185,9.5653],[48.2255,8.3852],[49.3262,12.1093],[53.0586,14.2841],[49.8224,6.7515],[53.6288,11.4148],[51.4455,7.5675],[48.7999,9.7978],[48.3252,10.0471],[51.5192,14.0047],[50.7928,7.2071],[50.8751,8.0256],[48.0869,9.2165],[47.7618,8.8349],[51.5726,8.1061],[51.1722,7.0846],[47.5135,10.2819],[49.3166,8.4336],[49.2788,7.1157],[49.4670,7.1696],[53.5998,9.4754],[52.6051,11.8594],[54.3096,13.0821],[48.8839,12.5956],[52.5589,13.9042],[48.7784,9.1800],[48.7784,9.1150],[50.6087,10.6926],[50.6087,10.6276],[51.1618,11.1175],[49.6230,9.6627],[49.7596,6.6442],[50.8153,7.1593],[48.5203,9.0536],[52.9841,10.5386],[48.3985,9.9912],[51.5349,7.6890],[52.7311,8.2873],[51.3407,7.0440],[52.9760,9.1808],[49.5401,8.5785],[51.2562,6.3905],[48.0632,8.4930],[48.8326,9.3164],[53.5156,12.6851],[51.9532,7.9912],[49.8068,7.3007],[47.8395,11.1416],[50.9793,11.3298],[49.5462,8.6717],[51.2000,11.9668],[49.3555,11.1433],[52.3716,12.9329],[52.8519,7.6764],[51.8344,10.7863],[51.6577,6.6171],[50.5623,7.9693],[53.2575,7.9273],[50.5706,8.5312],[50.0820,8.2417],[50.0820,8.1767],[49.2943,8.6987],[52.3214,13.6349],[53.5279,8.1063],[53.5279,8.0413],[53.3636,10.2059],[53.8910,11.4648],[51.4370,7.3351],[53.1605,12.4793],[52.1625,10.5348],[52.4206,10.7862],[49.6303,8.3621],[51.2640,7.1780],[51.3203,7.1455],[51.2077,7.1455],[49.7780,9.9435],[50.8961,14.8065],[50.8961,14.7415],[49.2487,7.3642],[50.7185,12.4939],[50.7185,12.4289]];
+const STATUS_COLOR={offen:'#2CB461',selektiv:'#e5820e',geschlossen:'#e5484d'};
+const STATUS_LABEL={offen:'offen für neue Marken',selektiv:'selektiv',geschlossen:'zurzeit geschlossen'};
+let quota=7;
+
+/* ============ Helpers ============ */
+const eur=n=>(Number(n)||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const CHECK='<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function catByName(n){return categories.find(c=>c.name===n);}
+function effMargin(p){ if(p.margin!=null) return p.margin; const c=catByName(p.kat); if(c&&c.margin!=null) return c.margin; return brand.defaultMargin; }
+function prodImgHtml(p,cls){ return p.img?`<img src="${esc(p.img)}" alt="" onerror="this.style.display='none'">`:'🍶'; }
+
+/* ============ Tabs ============ */
+let mapReady=false;
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  if(id==='karte'){ initMap(); setTimeout(()=>{ if(window._map) _map.invalidateSize(); },60); }
+}
+
+/* ============ Profil ============ */
+function socIcon(k){return {instagram:'📸',tiktok:'🎵',facebook:'f',linkedin:'in'}[k]||'·';}
+function renderProfile(){ renderFocus(); renderComplete(); }
+function socialChip(){
+  const plats=[['instagram','Instagram'],['tiktok','TikTok'],['facebook','Facebook'],['linkedin','LinkedIn']];
+  const filled=plats.filter(([k])=>brand[k]);
+  const inner = filled.length
+    ? `<span class="soc">${filled.map(([k])=>`<span title="${k}">${socIcon(k)}</span>`).join('')}</span>`
+    : `<span class="v">+ hinzufügen</span>`;
+  return `<div class="dchip ${filled.length?'':'empty'}" onclick="openField('social')"><span class="k">Social</span> ${inner}</div>`;
+}
+function dchip(key,label,val){
+  return val
+    ? `<div class="dchip" onclick="openField('${key}')"><span class="k">${label}</span> <span class="v">${esc(val)}</span></div>`
+    : `<div class="dchip empty" onclick="openField('${key}')"><span class="k">${label}</span> <span class="v">+ hinzufügen</span></div>`;
+}
+function gelistetVal(){ const v=(brand.bereits_gelistet||'').split(',').map(s=>s.trim()).filter(Boolean); return v.length?v.length+' Kanäle':''; }
+function displayVal(){ return brand.display ? (brand.display==='Ja'?'✓ Ja':brand.display) : ''; }
+const DISPLAY_INFO='Ein Aufsteller/Display ist ein fertiger Verkaufsständer (Karton oder Holz), den du mitlieferst. Der Händler stellt ihn direkt auf und präsentiert deine Produkte — ohne eigenes Regal einräumen zu müssen. Ideal für Zweitplatzierung an der Kasse oder im Aktionsbereich.';
+function displayChip(){
+  const filled=!!brand.display;
+  const info=`<span class="dinfo" title="${esc(DISPLAY_INFO)}" onclick="event.stopPropagation()">i</span>`;
+  const val=filled?`<span class="v">${esc(displayVal())}</span>`:`<span class="v">+ hinzufügen</span>`;
+  return `<div class="dchip ${filled?'':'empty'}" onclick="openField('display')"><span class="k">Aufsteller / Display</span> ${info} ${val}</div>`;
+}
+function renderDetailRow(target){
+  document.getElementById(target).innerHTML = `<div class="detail-row">`+
+    dchip('gruendungsjahr','Gegründet',brand.gruendungsjahr)+
+    socialChip()+
+    dchip('ean','Barcode / EAN',brand.ean)+
+    dchip('eurolochung','Eurolochung',brand.eurolochung)+
+    dchip('gelistet','Gelistet in',gelistetVal())+
+    dchip('jahresumsatz','Jahresumsatz',brand.jahresumsatz)+
+    dchip('werbebudget','Werbebudget',brand.werbebudget)+
+    displayChip()+`</div>`;
+}
+function renderDetailLine(target){
+  const P=[];
+  if(brand.gruendungsjahr) P.push(`<span class="dl"><span>Gegründet</span> <b>${esc(brand.gruendungsjahr)}</b></span>`);
+  const socs=[['instagram','📸'],['tiktok','🎵'],['facebook','f'],['linkedin','in']].filter(([k])=>brand[k]);
+  if(socs.length) P.push(`<span class="dl"><span>Social</span> <span class="soc">${socs.map(([k,i])=>`<span title="${k}">${i}</span>`).join('')}</span></span>`);
+  if(brand.ean) P.push(`<span class="dl"><span>Barcode / EAN</span> <b>${esc(brand.ean)}</b></span>`);
+  if(brand.eurolochung) P.push(`<span class="dl"><span>Eurolochung</span> <b>${esc(brand.eurolochung)}</b></span>`);
+  const g=gelistetVal(); if(g) P.push(`<span class="dl"><span>Gelistet in</span> <b>${esc(g)}</b></span>`);
+  if(brand.jahresumsatz) P.push(`<span class="dl"><span>Jahresumsatz</span> <b>${esc(brand.jahresumsatz)}</b></span>`);
+  if(brand.werbebudget) P.push(`<span class="dl"><span>Werbebudget</span> <b>${esc(brand.werbebudget)}</b></span>`);
+  if(brand.display) P.push(`<span class="dl"><span>Aufsteller / Display</span> <b>${esc(displayVal())}</b> <span class="dinfo" title="${esc(DISPLAY_INFO)}">i</span></span>`);
+  document.getElementById(target).innerHTML = P.length?`<div class="detail-line">${P.join('')}</div>`:'';
+}
+function renderFocus(){
+  const n=products.filter(p=>p.featured).length;
+  const bs=document.getElementById('bestStat'), fb=document.getElementById('focusBest');
+  bs.textContent = n?`✓ ${n} Bestseller ausgewählt`:'⚠ Noch keine Bestseller ausgewählt';
+  fb.classList.toggle('warn', n===0);
+  const words=(brand.beschreibung||'').trim().split(/\s+/).filter(Boolean).length;
+  const ds=document.getElementById('descStat'), fd=document.getElementById('focusDesc');
+  ds.textContent = words>=40?`✓ Beschreibung gepflegt (${words} Wörter)`:`⚠ Beschreibung recht kurz (${words} Wörter)`;
+  fd.classList.toggle('warn', words<40);
+}
+function checklist(){
+  const words=(brand.beschreibung||'').trim().split(/\s+/).filter(Boolean).length;
+  return [
+    ['Markenbeschreibung', words>=40],
+    ['mind. 3 Bestseller', products.filter(p=>p.featured).length>=3],
+    ['Gründungsjahr', !!brand.gruendungsjahr],
+    ['Social-Profil', !!(brand.instagram||brand.tiktok||brand.facebook||brand.linkedin)],
+    ['TikTok', !!brand.tiktok],
+    ['LinkedIn', !!brand.linkedin],
+    ['Barcode / EAN', !!brand.ean],
+    ['Eurolochung', !!brand.eurolochung],
+    ['Gelistet-in-Kanäle', !!(brand.bereits_gelistet||'').trim()],
+    ['Jahresumsatz', !!brand.jahresumsatz],
+    ['Werbebudget', !!brand.werbebudget],
+    ['Aufsteller / Display', !!brand.display]
+  ];
+}
+function renderComplete(){
+  const cl=checklist(); const done=cl.filter(x=>x[1]).length; const pct=Math.round(done/cl.length*100);
+  const missing=cl.filter(x=>!x[1]).map(x=>x[0]);
+  const box=document.getElementById('completeBox');
+  if(!missing.length){ box.innerHTML=''; return; }
+  box.innerHTML=`<div class="complete">
+    <div class="cbar"><i style="width:${pct}%"></i></div>
+    <div class="ctxt">Dein Profil ist zu <b>${pct}%</b> vollständig. Es fehlt noch: <b>${missing.map(esc).join(', ')}</b>. Ein vollständiges Profil wird von Händlern deutlich häufiger bestätigt.</div>
+    <button class="btn btn-primary" onclick="openPool('edit','bestseller')">Profil vervollständigen</button>
+  </div>`;
+}
+function renderPoolPreview(){
+  const feat=products.filter(p=>p.featured).slice(0,5);
+  const preview=feat.length>=5?feat:[...feat,...products.filter(p=>!p.featured)].slice(0,5);
+  const rest=Math.max(products.length-preview.length,0);
+  document.getElementById('poolPreview').innerHTML=`<div class="brow" onclick="openPool('preview')" title="Klick für die Detailansicht">
+    <div class="brow-head">
+      <div class="brow-id">
+        <div class="brand-logo" style="width:46px;height:46px;font-size:14px;border-radius:11px">${brand.logo?`<img src="${esc(brand.logo)}">`:'SC'}</div>
+        <div><div class="brow-name">${esc(brand.name)}</div><div class="brow-tag">${esc(brand.kurz)}</div></div>
+      </div>
+      <div class="brow-meta">
+        <span class="lockpill">🔒 Ø Laden-Provision</span>
+        <span class="lockpill">${products.length} Produkte</span>
+        <span class="lockpill">Ø Warenkorb ${eur(brand.avgCart)}</span>
+      </div>
+    </div>
+    <div class="brow-strip">
+      ${preview.map(p=>`<div class="bp"><div class="t">${prodImgHtml(p)}</div><div class="n">${esc(p.name)}</div></div>`).join('')}
+      <div class="more">${rest}+<br>mehr</div>
+    </div>
+  </div>`;
+}
+
+/* ============ Editierbares Markenpool-Modal ============ */
+let poolCat='Alle', poolMode='preview';
+function openPool(mode, focus){
+  poolMode = mode==='edit' ? 'edit' : 'preview';
+  poolCat = focus==='bestseller' ? 'Top Seller' : 'Alle';
+  const s=document.getElementById('poolSearch'); if(s) s.value='';
+  renderPool();
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('poolModal').classList.add('open');
+  if(focus==='beschreibung') setTimeout(editDescription,180);
+}
+function togglePoolMode(){ poolMode = poolMode==='edit'?'preview':'edit'; renderPool(); }
+function closePool(){ document.getElementById('overlay').classList.remove('open'); document.getElementById('poolModal').classList.remove('open'); }
+const descHtml=s=>esc(s).replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+function renderPool(){
+  const edit = poolMode==='edit';
+  document.getElementById('pmLogo').innerHTML=brand.logo?`<img src="${esc(brand.logo)}">`:'SC';
+  document.getElementById('pmTitle').textContent=brand.name;
+  const tg=document.getElementById('pmToggle');
+  tg.textContent = edit ? '👁 Vorschau' : '✎ Klick zum Bearbeiten';
+  tg.className = 'btn pm-toggle' + (edit?'':' btn-primary');
+  document.getElementById('editBanner').style.display = edit?'block':'none';
+  document.getElementById('catman').style.display = edit?'block':'none';
+  if(edit){
+    document.getElementById('pmDesc').innerHTML = esc(brand.kurz)+` <span class="pm-editlink" onclick="editDescription()">bearbeiten ›</span>`;
+    document.getElementById('pmMeta').innerHTML=
+      (brand.verified?`<span class="verif">${CHECK} Verifiziert</span>`:'')+
+      `<span class="pill">Ø Laden-Provision ${brand.defaultMargin} %</span>`+
+      `<span class="pill">Ø Warenkorb ${eur(brand.avgCart)}</span>`+
+      `<span class="pill">${products.length} Produkte</span>`;
+    renderDetailRow('pmDetailRow');
+    renderCatman();
+  } else {
+    document.getElementById('pmDesc').innerHTML =
+      `<span class="desc-clamp" id="pmDescText">${descHtml(brand.beschreibung)}</span> `+
+      `<button class="desc-more" id="pmDescMore" onclick="toggleDesc()" style="display:none">mehr</button>`;
+    document.getElementById('pmMeta').innerHTML=
+      `<span class="meta-chip">Ø Laden-Provision <b>${brand.defaultMargin} %</b></span>`+
+      `<span class="meta-chip">Ø Warenkorb <b>${eur(brand.avgCart)}</b></span>`+
+      `<span class="meta-chip">${products.length} Produkte</span>`+
+      `<span class="modal-actions">`+
+        `<a class="web-link" href="${esc(brand.website)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Website <span class="ar">→</span></a>`+
+        `<button class="btn btn-ghost" onclick="toast('Vorschau — so kontaktieren dich Händler')">✉︎ Lieferant kontaktieren</button>`+
+      `</span>`;
+    renderBrandDetailsPreview('pmDetailRow');
+    setTimeout(fitDescMore,30);
+  }
+  renderPoolPills();
+  renderPoolGrid();
+}
+function toggleDesc(){ const el=document.getElementById('pmDescText'),b=document.getElementById('pmDescMore'); const o=el.classList.toggle('desc-open'); b.textContent=o?'weniger':'mehr'; }
+function fitDescMore(){ const el=document.getElementById('pmDescText'),b=document.getElementById('pmDescMore'); if(!el||!b)return; b.style.display=(el.scrollHeight-el.clientHeight>4)?'inline-block':'none'; }
+const SOC_SVG={
+  instagram:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>',
+  facebook:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7h2.3l.4-2.8h-2.7V9.4c0-.8.2-1.4 1.4-1.4h1.4V5.5c-.7-.1-1.4-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6v2H8.3V14h2.4v7h2.8z"/></svg>',
+  tiktok:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.3 2 1.6 3.5 3.5 3.8v2.4c-1.3 0-2.5-.4-3.5-1.1v5.6c0 2.9-2.3 5.3-5.2 5.3-2.9 0-5.2-2.4-5.2-5.3 0-2.7 2-4.9 4.6-5.2v2.5c-1.2.3-2.1 1.4-2.1 2.7 0 1.5 1.2 2.8 2.8 2.8s2.8-1.2 2.8-2.8V3H16z"/></svg>',
+  linkedin:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a1.94 1.94 0 1 1-3.88 0 1.94 1.94 0 0 1 3.88 0zM3.3 8.5h3.3V21H3.3zM9.2 8.5h3.16v1.7h.05c.44-.83 1.5-1.7 3.1-1.7 3.3 0 3.9 2.17 3.9 5V21h-3.3v-4.9c0-1.17-.02-2.67-1.63-2.67-1.63 0-1.88 1.27-1.88 2.58V21H9.2z"/></svg>'
+};
+function socialUrl(platform, val){
+  if(val==null) return '';
+  val=String(val).trim();
+  if(/^https?:\/\//i.test(val)) return val;      // volle URL 1:1
+  const h=val.replace(/^@/,'');
+  const enc=encodeURIComponent(val);
+  const slug=encodeURIComponent(h.replace(/\s+/g,''));
+  const spaced=/\s/.test(h);
+  if(platform==='instagram') return 'https://instagram.com/'+slug;
+  if(platform==='tiktok')    return 'https://www.tiktok.com/@'+slug;
+  if(platform==='facebook')  return spaced ? 'https://www.facebook.com/search/top?q='+enc : 'https://facebook.com/'+slug;
+  if(platform==='linkedin')  return spaced ? 'https://www.linkedin.com/search/results/all/?keywords='+enc : 'https://www.linkedin.com/company/'+slug;
+  return '';
+}
+function renderBrandDetailsPreview(target){
+  const socs=[['instagram',brand.instagram],['facebook',brand.facebook],['tiktok',brand.tiktok],['linkedin',brand.linkedin]].filter(s=>s[1]);
+  const socHtml=socs.map(s=>`<a class="bd-sic" href="${esc(socialUrl(s[0],s[1]))}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${esc(s[0]+': '+s[1])}">${SOC_SVG[s[0]]}</a>`).join('');
+  const kan=(brand.bereits_gelistet||'').split(',').map(x=>x.trim()).filter(Boolean);
+  const gel=kan.length?`<button class="bd-link" onclick="openGelistet()">${kan.length} ${kan.length===1?'Kanal':'Kanälen'}</button>`:'';
+  const cells=[
+    ['Gegründet', brand.gruendungsjahr, false],
+    ['Social', socHtml, true],
+    ['Barcode / EAN', brand.ean, false],
+    ['Eurolochung', brand.eurolochung, false],
+    ['Gelistet in', gel, true]
+  ];
+  document.getElementById(target).innerHTML=`<div class="brand-details">`+cells.map(c=>{
+    let inner;
+    if(c[2]) inner = c[1]?`<span class="bd-sset">${c[1]}</span>`:`<span class="bd-v off">—</span>`;
+    else { const raw=(c[1]!=null&&String(c[1]).trim()!=='')?String(c[1]).trim():'—'; inner=`<span class="bd-v${raw==='—'?' off':''}">${esc(raw)}</span>`; }
+    return `<span class="bd-i"><span class="bd-k">${esc(c[0])}</span> ${inner}</span>`;
+  }).join('')+`</div>`;
+}
+function openGelistet(){ toast('Gelistet in: '+brand.bereits_gelistet); }
+function scrollCats(d){ const el=document.getElementById('poolCats'); if(el) el.scrollBy({left:d*200,behavior:'smooth'}); }
+function renderCatman(){
+  document.getElementById('catman').innerHTML=`
+    <h4>Kategorien &amp; Margen <span class="dinfo" title="Produkte umsortieren im jeweiligen Produkt-Edit. Marge-Feld leer = deine Laden-Standard-Marge gilt. Nur ausfüllen, wenn eine Kategorie eine abweichende Marge haben soll.">i</span></h4>
+    <div class="std-marge"><b>Laden-Standard-Marge:</b><input type="number" id="stdMargeInput" min="0" max="100" value="${brand.defaultMargin}"> %
+      <button class="btn btn-primary" style="padding:7px 12px" onclick="applyDefaultMargin()">Übernehmen</button></div>
+    <div class="cmrow cmhead"><span>Kategorie</span><span>Marge %</span><span>Anzahl</span><span></span></div>
+    ${categories.map((c,i)=>`<div class="cmrow">
+      <input class="cn" value="${esc(c.name)}" onchange="renameCat(${i},this.value)">
+      <input class="cmarge" type="number" min="0" max="100" placeholder="${brand.defaultMargin}" title="Marge dieser Kategorie in %. Leer = es gilt automatisch die Laden-Standard-Marge (${brand.defaultMargin} %)." value="${c.margin==null?'':c.margin}" onchange="setCatMargin(${i},this.value)">
+      <span class="ccount" title="${products.filter(p=>p.kat===c.name).length} Produkte in dieser Kategorie">${products.filter(p=>p.kat===c.name).length} Prod.</span>
+      <button class="cdel" title="Kategorie löschen" onclick="deleteCat(${i})">🗑</button>
+    </div>`).join('')}
+    <div class="cmadd">
+      <input class="cn" id="newCatInput" placeholder="Neue Kategorie …" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font:inherit">
+      <button class="btn btn-primary" onclick="addCat()">+ Kategorie</button>
+    </div>`;
+}
+function renderPoolPills(){
+  const cats=['Alle','Top Seller',...categories.map(c=>c.name)];
+  const inner=cats.map(c=>{
+    const label = c==='Top Seller' ? '<span class="cat-star">★</span> Top Seller' : esc(c);
+    return `<button class="cat-pill ${poolCat===c?'active':''}" onclick="setPoolCat('${c.replace(/'/g,"\\'")}')">${label}</button>`;
+  }).join('');
+  document.getElementById('poolPills').innerHTML=
+    `<div class="cats-wrap"><button class="cats-arrow" onclick="scrollCats(-1)" aria-label="zurück">‹</button>`+
+    `<div class="cats" id="poolCats">${inner}</div>`+
+    `<button class="cats-arrow" onclick="scrollCats(1)" aria-label="weiter">›</button></div>`;
+}
+function setPoolCat(c){ poolCat=c; renderPoolPills(); renderPoolGrid(); }
+function renderPoolGrid(){
+  const edit = poolMode==='edit';
+  const q=(document.getElementById('poolSearch').value||'').toLowerCase();
+  let ps=products.slice();
+  if(poolCat==='Top Seller') ps=ps.filter(p=>p.featured);
+  else if(poolCat!=='Alle') ps=ps.filter(p=>p.kat===poolCat);
+  if(q) ps=ps.filter(p=>p.name.toLowerCase().includes(q));
+  const grid=document.getElementById('poolGrid');
+  grid.className = edit ? 'pgrid' : 'prod-grid';
+  if(!ps.length){ grid.innerHTML='<div class="rcard-empty">Keine Produkte gefunden.</div>'; return; }
+  grid.innerHTML=ps.map(p=> edit ? editCard(p) : previewCard(p)).join('');
+}
+function previewCard(p){
+  const d=p.desc||catDesc[p.kat]||'';
+  return `<div class="prod-card">
+    <div class="prod-thumb">${p.featured?'<span class="ts-badge" title="Top Seller">★</span>':''}<span class="prod-cat">${esc(p.kat)}</span>${p.img?`<img src="${esc(p.img)}" onerror="this.style.display='none'">`:'🍶'}</div>
+    <div class="prod-info">
+      <div class="prod-name">${esc(p.name)}</div>
+      ${d?`<div class="prod-desc">${esc(d)}</div>`:''}
+      <div class="prod-price"><span class="uvp">${eur(p.uvp)}</span><span class="uvp-l">UVP</span></div>
+      <span class="prod-margin">Ø Laden-Provision ${effMargin(p)} %</span>
+      <button class="prod-btn" onclick="toast('Vorschau — so fragen Händler an')">+ Zur Anfrage</button>
+    </div>
+  </div>`;
+}
+function editCard(p){
+  return `<div class="pc">
+    <div class="pt"><span class="cattag">${esc(p.kat)}</span>
+      <button class="star ${p.featured?'on':'off'}" title="Topseller" onclick="toggleTop(${p.id})">${p.featured?'★':'☆'}</button>${prodImgHtml(p)}</div>
+    <div class="pb">
+      <div class="pn">${esc(p.name)}</div>
+      <div class="pu">UVP ${eur(p.uvp)}</div>
+      <span class="pm-marge">Marge ${effMargin(p)} %${p.margin!=null?' (eigen)':(catByName(p.kat)&&catByName(p.kat).margin!=null?' (Kat.)':'')}</span>
+      <button class="pedit" onclick="openProd(${p.id})">Bearbeiten</button>
+    </div>
+  </div>`;
+}
+function toggleTop(id){ const p=products.find(x=>x.id===id); if(!p)return; p.featured=!p.featured; renderPoolGrid(); renderPoolPills(); syncAll(); toast(p.featured?'Als Topseller markiert':'Topseller entfernt'); }
+function applyDefaultMargin(){
+  const el=document.getElementById('stdMargeInput');
+  const v=parseInt(el.value);
+  if(isNaN(v)||v<0||v>100){ toast('Bitte eine Marge zwischen 0 und 100 eingeben'); el.value=brand.defaultMargin; return; }
+  const overrides = categories.filter(c=>c.margin!=null).length + products.filter(p=>p.margin!=null).length;
+  if(v===brand.defaultMargin && overrides===0){ toast('Keine Änderung'); return; }
+  const msg = overrides>0
+    ? `Achtung: Die Laden-Standard-Marge wird auf ${v} % gesetzt und ALLE ${overrides} individuell abweichenden Kategorie-/Produkt-Margen werden dabei entfernt. Danach haben ALLE Produkte ${v} %.\n\nFortfahren?`
+    : `Laden-Standard-Marge auf ${v} % setzen? Alle Produkte erhalten dann ${v} %.`;
+  if(!confirm(msg)){ el.value=brand.defaultMargin; return; }
+  brand.defaultMargin=v;
+  categories.forEach(c=>c.margin=null);
+  products.forEach(p=>p.margin=null);
+  renderCatman(); renderPoolGrid(); renderProfile(); renderPoolPreview();
+  toast(`Alle Margen auf ${v} % gesetzt`);
+}
+function setCatMargin(i,v){ categories[i].margin = v===''?null:(parseInt(v)||0); renderPoolGrid(); }
+function renameCat(i,v){ v=v.trim(); if(!v)return; const old=categories[i].name; products.forEach(p=>{if(p.kat===old)p.kat=v;}); categories[i].name=v; if(poolCat===old)poolCat=v; renderPool(); syncAll(); }
+function deleteCat(i){ const c=categories[i]; const n=products.filter(p=>p.kat===c.name).length; if(n && !confirm(`„${c.name}" hat ${n} Produkt(e). Diese werden „Unkategorisiert". Löschen?`)) return; products.forEach(p=>{if(p.kat===c.name)p.kat='Unkategorisiert';}); categories.splice(i,1); if(!categories.some(x=>x.name==='Unkategorisiert') && products.some(p=>p.kat==='Unkategorisiert')) categories.push({name:'Unkategorisiert',margin:null}); if(poolCat===c.name)poolCat='Alle'; renderPool(); syncAll(); }
+function addCat(){ const inp=document.getElementById('newCatInput'); const v=(inp.value||'').trim(); if(!v)return; if(categories.some(c=>c.name===v)){toast('Kategorie existiert schon');return;} categories.push({name:v,margin:null}); inp.value=''; renderCatman(); renderPoolPills(); }
+
+/* ============ Produkt-Edit ============ */
+let prodEditId=null, prodEditImg=null;
+function openProd(id){
+  const p=products.find(x=>x.id===id); if(!p)return; prodEditId=id; prodEditImg=null;
+  document.getElementById('edName').value=p.name;
+  document.getElementById('edUvp').value=p.uvp;
+  document.getElementById('edDesc').value=p.desc||catDesc[p.kat]||'';
+  document.getElementById('edMarge').value=p.margin==null?'':p.margin;
+  document.getElementById('edFeatured').checked=!!p.featured;
+  document.getElementById('edImgUrl').value='';
+  document.getElementById('edKat').innerHTML=categories.map(c=>`<option ${c.name===p.kat?'selected':''}>${esc(c.name)}</option>`).join('');
+  document.getElementById('edThumb').innerHTML=p.img?`<img src="${esc(p.img)}">`:'🍶';
+  document.getElementById('prodModal').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function edUpload(inp){ const f=inp.files&&inp.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ prodEditImg=e.target.result; document.getElementById('edThumb').innerHTML=`<img src="${prodEditImg}">`; }; r.readAsDataURL(f); }
+function edPreviewUrl(){ const u=document.getElementById('edImgUrl').value.trim(); if(u){ prodEditImg=u; document.getElementById('edThumb').innerHTML=`<img src="${esc(u)}" onerror="this.style.display='none'">`; } }
+function saveProd(){
+  const p=products.find(x=>x.id===prodEditId); if(!p)return;
+  p.name=document.getElementById('edName').value.trim()||p.name;
+  p.uvp=parseFloat(document.getElementById('edUvp').value)||p.uvp;
+  p.kat=document.getElementById('edKat').value;
+  p.desc=document.getElementById('edDesc').value;
+  const m=document.getElementById('edMarge').value; p.margin = m===''?null:(parseInt(m)||0);
+  p.featured=document.getElementById('edFeatured').checked;
+  if(prodEditImg) p.img=prodEditImg;
+  closeMini('prodModal'); renderPool(); syncAll(); toast('Produkt gespeichert');
+}
+
+/* ============ Beschreibung-Edit ============ */
+function editDescription(){
+  document.getElementById('dsKurz').value=brand.kurz.slice(0,150);
+  document.getElementById('dsLang').value=brand.beschreibung.slice(0,1000);
+  updateDescCount();
+  document.getElementById('descModal').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function updateDescCount(){
+  const k=document.getElementById('dsKurz').value.length, l=document.getElementById('dsLang').value.length;
+  document.getElementById('dsKurzCount').textContent=`${k} / 150 Zeichen`;
+  document.getElementById('dsLangCount').textContent=`${l} / 1000 Zeichen`;
+}
+function saveDesc(){ brand.kurz=document.getElementById('dsKurz').value.trim(); brand.beschreibung=document.getElementById('dsLang').value.trim(); closeMini('descModal'); syncAll(); toast('Beschreibung gespeichert'); }
+
+/* ============ Detailfeld-Edit ============ */
+let fieldKey=null;
+const FIELD_DEF={
+  gruendungsjahr:{title:'Gründungsjahr', html:()=>`<div class="field"><label>Gegründet</label><input id="fv" value="${esc(brand.gruendungsjahr)}" placeholder="z. B. 2012"></div>`, save:()=>brand.gruendungsjahr=document.getElementById('fv').value.trim()},
+  social:{title:'Social-Profile', html:()=>`
+    <div class="field"><label>Instagram</label><input id="fIg" value="${esc(brand.instagram)}" placeholder="handle"></div>
+    <div class="field"><label>TikTok</label><input id="fTt" value="${esc(brand.tiktok)}" placeholder="handle"></div>
+    <div class="field"><label>Facebook</label><input id="fFb" value="${esc(brand.facebook)}" placeholder="Seitenname / URL"></div>
+    <div class="field"><label>LinkedIn</label><input id="fLi" value="${esc(brand.linkedin)}" placeholder="company"></div>`,
+    save:()=>{brand.instagram=document.getElementById('fIg').value.trim();brand.tiktok=document.getElementById('fTt').value.trim();brand.facebook=document.getElementById('fFb').value.trim();brand.linkedin=document.getElementById('fLi').value.trim();}},
+  ean:{title:'Barcode / EAN', html:()=>`<div class="field"><label>Haben deine Produkte einen Barcode/EAN?</label><select id="fv"><option value="">Bitte wählen …</option><option ${brand.ean==='Ja'?'selected':''}>Ja</option><option ${brand.ean==='Nein'?'selected':''}>Nein</option><option ${brand.ean==='Auf Anfrage'?'selected':''}>Auf Anfrage</option></select></div>`, save:()=>brand.ean=document.getElementById('fv').value},
+  eurolochung:{title:'Eurolochung', html:()=>`<div class="field"><label>Verpackung mit Eurolochung?</label><select id="fv"><option value="">Bitte wählen …</option><option ${brand.eurolochung==='Ja'?'selected':''}>Ja</option><option ${brand.eurolochung==='Nein'?'selected':''}>Nein</option><option ${brand.eurolochung==='Auf Anfrage'?'selected':''}>Auf Anfrage</option></select></div>`, save:()=>brand.eurolochung=document.getElementById('fv').value},
+  gelistet:{title:'Gelistet in', html:()=>`<div class="field"><label>Reale Handelskanäle <span class="opt">(Komma-Liste, kein Online-/Eigenvertrieb)</span></label><textarea id="fv" style="min-height:90px">${esc(brand.bereits_gelistet)}</textarea></div>`, save:()=>brand.bereits_gelistet=document.getElementById('fv').value.trim()},
+  jahresumsatz:{title:'Jahresumsatz', html:()=>`<div class="field"><label>Jahresumsatz deiner Marke <span class="opt">(Band, hilft Händlern bei der Einordnung)</span></label><select id="fv"><option value="">Bitte wählen …</option>${UMSATZ_BANDS.map(b=>`<option ${brand.jahresumsatz===b?'selected':''}>${b}</option>`).join('')}</select></div>`, save:()=>brand.jahresumsatz=document.getElementById('fv').value},
+  werbebudget:{title:'Werbebudget', html:()=>`<div class="field"><label>Werbebudget pro Jahr <span class="opt">(Band — für gemeinsame Aktionen mit Händlern)</span></label><select id="fv"><option value="">Bitte wählen …</option>${BUDGET_BANDS.map(b=>`<option ${brand.werbebudget===b?'selected':''}>${b}</option>`).join('')}</select></div>`, save:()=>brand.werbebudget=document.getElementById('fv').value},
+  display:{title:'Aufsteller / Display', html:()=>`
+    <div class="field"><label>Kannst du Produkte mit eigenem Aufsteller / Display liefern? <span class="opt">(POS-Display, das der Händler direkt aufstellen kann)</span></label>
+      <select id="fv"><option value="">Bitte wählen …</option><option ${brand.display==='Ja'?'selected':''}>Ja</option><option ${brand.display==='Nein'?'selected':''}>Nein</option><option ${brand.display==='Auf Anfrage'?'selected':''}>Auf Anfrage</option></select></div>
+    <div class="field"><label>Details zum Display <span class="opt">(optional — Art, Kapazität, Konditionen)</span></label>
+      <textarea id="fvNote" placeholder="z. B. Holz-Display für 12 Flaschen, kostenlos ab 6 Sorten Abnahme" style="min-height:70px">${esc(brand.displayNote)}</textarea></div>`,
+    save:()=>{brand.display=document.getElementById('fv').value;brand.displayNote=document.getElementById('fvNote').value.trim();}}
+};
+function openField(key){
+  fieldKey=key; const def=FIELD_DEF[key]; if(!def)return;
+  document.getElementById('fmTitle').textContent=def.title;
+  document.getElementById('fmBody').innerHTML=def.html();
+  document.getElementById('fieldModal').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function saveField(){ const def=FIELD_DEF[fieldKey]; if(def){ def.save(); } closeMini('fieldModal'); syncAll(); toast('Gespeichert'); }
+
+function closeMini(id){
+  document.getElementById(id).classList.remove('open');
+  const anyPool=document.getElementById('poolModal').classList.contains('open');
+  const anyMini=['prodModal','descModal','fieldModal'].some(m=>document.getElementById(m).classList.contains('open'));
+  if(!anyPool && !anyMini) document.getElementById('overlay').classList.remove('open');
+}
+function syncAll(){ renderProfile(); renderPoolPreview(); if(document.getElementById('poolModal').classList.contains('open')) renderPool(); }
+
+/* ============ Händler-Karte ============ */
+function initMap(){
+  if(mapReady)return; mapReady=true;
+  const bf=document.getElementById('branchFilter');
+  [...new Set(retailers.map(r=>r.branch))].sort().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bf.appendChild(o);});
+  window._map=L.map('map',{scrollWheelZoom:true}).setView([51.1,10.3],5.6);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · © CARTO',maxZoom:18}).addTo(_map);
+  window._markers=[]; renderMap();
+}
+function renderMap(){
+  const bf=document.getElementById('branchFilter').value;
+  window._markers.forEach(m=>_map.removeLayer(m)); window._markers=[];
+  retailers.forEach((r,i)=>{
+    if(bf && r.branch!==bf)return;
+    if(r.verbund){
+      // Verbund: alle Standorte als einzelne Pins (gleicher Stil, etwas kleiner wegen Menge),
+      // jeder Pin öffnet dasselbe Verbund-Profil.
+      const vicon=L.divIcon({className:'',html:`<div class="rmarker" style="background:${STATUS_COLOR[r.status]};width:11px;height:11px"></div>`,iconSize:[11,11],iconAnchor:[5,5]});
+      FN_LOCS.forEach(l=>{
+        const m=L.marker([l[0],l[1]],{icon:vicon}).addTo(_map);
+        m.on('click',()=>selectRetailer(i)); window._markers.push(m);
+      });
+      return;
+    }
+    const icon=L.divIcon({className:'',html:`<div class="rmarker" style="background:${STATUS_COLOR[r.status]}"></div>`,iconSize:[18,18],iconAnchor:[9,9]});
+    const m=L.marker([r.lat,r.lng],{icon}).addTo(_map); m.on('click',()=>selectRetailer(i)); window._markers.push(m);
+  });
+}
+function selectRetailer(i){
+  const r=retailers[i]; const closed=r.status==='geschlossen';
+  document.getElementById('rcard').innerHTML=`
+    <div class="rcard-photos"><div class="rphoto">🏪<span>Außenansicht</span></div><div class="rphoto">🛍️<span>Innenansicht</span></div></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h3>${esc(r.name)}</h3>
+      <span class="status-badge st-${r.status}">● ${STATUS_LABEL[r.status]}</span>${r.verified?`<span class="verif">${CHECK} Verifiziert</span>`:''}</div>
+    <div class="rrow"><span class="k">Standort</span><b>${esc(r.city)} · ${r.stores} Filiale${r.stores===1?'':'n'} · ~${r.area} m²</b></div>
+    <div class="rrow"><span class="k">Branche</span><b>${esc(r.branch)} · Positionierung: ${esc(r.pricing)}</b></div>
+    <div class="rrow"><span class="k">Handelsvolumen</span><b>${esc(r.volume)}</b> <span style="color:var(--muted)">· ${r.volVerified?'verifiziert':'nicht verifiziert'}</span></div>
+    <div class="rrow"><span class="k">No-Gos</span><span>${r.noGos.length?r.noGos.map(n=>`<span class="chip-nogo">${esc(n)}</span>`).join(''):'<span style="color:var(--muted)">keine</span>'}</span></div>
+    <div class="rrow"><span class="k">Präferenzen</span><span>${r.prefs.map(p=>`<span class="chip-pref">${esc(p)}</span>`).join('')}</span></div>
+    ${r.seeking.length?`<div class="rrow"><span class="k">Sucht gerade</span><b>${r.seeking.map(esc).join(', ')}</b></div>`:''}
+    ${r.verbund?`<div class="rrow" style="color:var(--muted);font-size:13px">Verbund: Alle ${r.stores} Standorte treten als eine Einheit auf. Deine Anfrage geht an die Zentrale und zählt als eine Anfrage — einzelne Filialen sind nicht separat anfragbar.</div>`:''}
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" ${closed?'disabled':''} onclick="sendRequest(${i})">${closed?'🔴 Zurzeit geschlossen — keine Anfrage möglich':'Anfrage senden'}</button>`;
+}
+function sendRequest(i){ if(quota<=0){toast('Kontingent aufgebraucht');return;} const r=retailers[i]; quota--; const q=document.getElementById('quota'); if(q)q.textContent=quota; toast('Anfrage an '+r.name+' gesendet — '+quota+'/10 übrig'); const b=document.querySelector('#rcard .btn-primary'); if(b){b.disabled=true;b.textContent='✓ Anfrage gesendet';} }
+
+/* ============ Empfehlungen ============ */
+const BRAND_TAGS=['Feinkost','Regional','Bio','Nachhaltig','Genuss','Küche'];
+function fitScore(r){ let s=38; r.prefs.forEach(p=>{if(BRAND_TAGS.includes(p))s+=13;}); if(r.status==='offen')s+=15;else if(r.status==='selektiv')s+=5;else s-=25; if(r.pricing==='Premium'||r.pricing==='Luxus')s+=8; if(r.noGos.includes('Massenware')&&false)s-=0; if(r.verified)s+=6; return Math.max(5,Math.min(98,s)); }
+function fitWhy(r,s){ const hits=r.prefs.filter(p=>BRAND_TAGS.includes(p)); const bits=[]; if(hits.length)bits.push('Präferenzen passen ('+hits.join(', ')+')'); if(r.status==='offen')bits.push('offen für neue Marken'); if(r.pricing==='Premium'||r.pricing==='Luxus')bits.push('Positionierung passt zu Schusters'); if(!bits.length)bits.push('Basis-Fit über Region & Sortiment'); return s+' % Fit — '+bits.join(' · '); }
+function renderRecs(){
+  const ranked=retailers.map(r=>[r,fitScore(r)]).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('recList').innerHTML=ranked.map(([r,s],i)=>`<div class="rec"><div class="rank">${i+1}</div>
+    <div style="flex:1"><div class="rc-name">${esc(r.name)} <span style="color:var(--muted);font-weight:500">· ${esc(r.city)} · ${esc(r.branch)}</span></div>
+    <div class="rc-why">${esc(fitWhy(r,s))}</div></div><span class="fit-badge">${s} %</span></div>`).join('');
+}
+/* ============ Gesuche ============ */
+let _seekItems=[];
+function renderSeek(){
+  _seekItems=[]; retailers.forEach(r=>r.seeking.forEach(s=>_seekItems.push([r,s])));
+  document.getElementById('seekGrid').innerHTML=_seekItems.length?_seekItems.map(([r,s],k)=>`<div class="seek">
+    <div class="who">${esc(r.name)} · ${esc(r.city)} <span class="status-badge st-${r.status}" style="margin-left:4px">● ${STATUS_LABEL[r.status]}</span></div>
+    <div class="what">sucht gerade: <b>${esc(s)}</b></div>
+    <button class="btn btn-primary" onclick="seekReact(${k})">Reagieren</button></div>`).join(''):'<div class="rcard-empty">Aktuell keine offenen Gesuche.</div>';
+}
+function seekReact(k){ const it=_seekItems[k]; if(it) toast('Reaktion an '+it[0].name+' vermerkt'); }
+
+/* ============ Init ============ */
+document.getElementById('footYear').textContent=new Date().getFullYear();
+renderProfile(); renderPoolPreview(); renderRecs(); renderSeek();
+
+/* ============================================================
+   EINHEIT mit der Prepage (verdrahtet von Chat A, HP-Auftrag 2026-07-21):
+   Session-Guard + Konto-Anzeige + Abmelden. Session-Key = spreat20_session
+   (siehe ../_KOORDINATION.md). ?standalone in der URL überspringt den Guard
+   (für isoliertes Testen durch Chat B).
+   ============================================================ */
+(function(){
+  const KEY='spreat20_session', HOME='../einzelhaendler/prepage-einzelhaendler.html';
+  let s=null; try{ s=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+  const standalone=new URLSearchParams(location.search).has('standalone');
+  if(!standalone && (!s || s.role!=='marke')){ location.replace(HOME); return; }
+  window.spreatLogout=function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.href=HOME; };
+  const a=document.getElementById('acctArea');
+  if(a && s && s.role==='marke'){
+    const name=((s.brand&&s.brand.company)||s.email||'').replace(/</g,'&lt;');
+    a.innerHTML=`<span style="color:var(--muted)">${name}</span>
+      <button onclick="spreatLogout()" style="background:none;border:1px solid var(--border);border-radius:9px;
+        padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text);font-family:inherit">↩︎ Abmelden</button>`;
+  }
+})();
+</script>
+</body>
+</html>
