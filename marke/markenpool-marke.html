@@ -1066,14 +1066,12 @@ window.spreatLogout=async function(){
 /* ---- Marke + Produkte aus der DB laden und die Seite damit füllen ---- */
 async function bootBrand(){
   const {data:{session:s}}=await sbm.auth.getSession();
-  if(!s){ // nicht eingeloggt -> Login zeigen (E-Mail ggf. von der Prepage übergeben)
-    const params=new URLSearchParams(location.search);
-    let pre=params.get('email');
-    if(!pre){ try{ const ls=JSON.parse(localStorage.getItem(SESSION_KEY)||'null'); if(ls&&ls.email) pre=ls.email; }catch(e){} }
-    if(pre) document.getElementById('mlEmail').value=pre;
-    document.getElementById('mLogin').style.display=''; mlShow('mlStep1');
-    // Von der Prepage mit ?send=1 -> Code sofort schicken und direkt zum Code-Schritt
-    if(params.get('send')==='1' && pre){ mlSendCode(); }
+  if(!s){
+    // Kein eigener Login mehr — der EINZIGE Login liegt auf der Startseite (Prepage).
+    // Rollen-Markierung löschen (sonst schickt die Prepage sofort wieder hierher = Schleife),
+    // dann zurück zur Startseite.
+    try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+    location.replace(HOME);
     return;
   }
   const email=(s.user.email||'').toLowerCase();
