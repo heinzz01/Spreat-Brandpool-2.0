@@ -3438,7 +3438,7 @@ async function loadRealIncoming(){
       msg:br.nachricht||'', verlauf:Array.isArray(br.verlauf)?br.verlauf:[], itemProds};
   });
 }
-async function loadIncoming(){ incomingReqs = (await loadRealIncoming()).concat(demoIncoming()); }
+async function loadIncoming(){ incomingReqs = await loadRealIncoming(); }  /* NUR echte brand_requests — kein fester Demo-Eintrag mehr (sonst Widerspruch zur Marken-Seite) */
 function renderIncoming(){
   const w=document.getElementById('reqInBody'); if(!w) return;
   if(!incomingReqs){ w.innerHTML='<div class="state-msg">Lade …</div>'; return; }
