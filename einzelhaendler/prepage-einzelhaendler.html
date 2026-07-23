@@ -3247,7 +3247,7 @@ function findRegButton(){
   return [...a.querySelectorAll('button')].find(b=>/registrieren/i.test(b.textContent)) || null;
 }
 function showRegCallout(){
-  if(isRegistered() || document.getElementById('regCallout')) return;
+  if((session && session.loggedIn) || isRegistered() || document.getElementById('regCallout')) return;
   const btn=findRegButton();
   const co=document.createElement('div');
   co.id='regCallout'; co.className='reg-callout';
