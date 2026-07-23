@@ -169,7 +169,7 @@
   .overlay.open{display:block}
 
   .modal{position:fixed;z-index:55;left:50%;top:50%;transform:translate(-50%,-50%);
-    width:min(960px,94vw);max-height:90vh;background:var(--card);border-radius:18px;
+    width:min(1020px,96vw);max-height:90vh;background:var(--card);border-radius:18px;
     display:none;flex-direction:column;overflow-y:auto;overflow-x:hidden;box-shadow:0 30px 80px rgba(16,18,29,.4)}
   .modal.open{display:flex}
   .modal-head{padding:22px 24px;border-bottom:1px solid var(--border)}
@@ -217,6 +217,20 @@
   .brand-details .bd-link{color:var(--accent);border-bottom:1px dotted currentColor;cursor:pointer;
     background:none;border-top:0;border-left:0;border-right:0;padding:0;font:inherit;text-shadow:0 1px 0 rgba(255,255,255,.9)}
   .brand-details .bd-link:hover{color:var(--accent-d,var(--accent));border-bottom-style:solid}
+  /* „Mehr anzeigen"-Zelle: dezent wie ein Label, dünn, unterstrichen */
+  .brand-details .bd-more{background:none;border:none;font-family:inherit;font-size:10px;line-height:1;letter-spacing:.02em;
+    color:#9aa0a8;font-weight:400;cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+    text-decoration-color:#cfd3d9;padding:0;text-shadow:0 1px 0 rgba(255,255,255,.9)}
+  .brand-details .bd-more:hover{color:#727880;text-decoration-color:#9aa0a8}
+  /* Detail-Popup „Markendetails" */
+  #brandDetailPopup .bdp-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;
+    border-bottom:1px solid var(--border);font-size:13.5px}
+  #brandDetailPopup .bdp-row:last-child{border-bottom:none}
+  #brandDetailPopup .bdp-k{color:var(--muted)}
+  #brandDetailPopup .bdp-v{font-weight:600;text-align:right}
+  #brandDetailPopup .bdp-sec{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+    color:#b6bcc4;margin:14px 0 2px}
+  #brandDetailPopup .bdp-sec:first-child{margin-top:2px}
   .gl-sub{margin:0 0 12px;font-size:13px;color:var(--muted)}
   .gl-chips{display:flex;flex-wrap:wrap;gap:6px}
   .gl-chips span{font-size:13px;background:var(--bg);border:1px solid var(--border);
@@ -706,11 +720,9 @@
   .cta-foot .cf-note{font-size:13px;color:var(--muted)}
   .cta-foot .cf-note b{color:var(--green)}
 
-  /* ✓-verifiziert-Stempel */
-  .verif-stamp{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;
-     color:#fff;background:var(--accent);padding:3px 9px;border-radius:999px;vertical-align:middle;white-space:nowrap}
-  .verif-stamp svg{width:12px;height:12px;stroke:#fff}
-  .verif-stamp.big{font-size:12.5px;padding:5px 12px}
+  /* „Spreat verifiziert"-Stempel (Bild) */
+  .verif-stamp{height:30px;width:auto;vertical-align:-9px;display:inline-block}
+  .verif-stamp.big{height:64px;vertical-align:middle}
 
   /* Erweitertes Register-Popup — auf Desktop breiter */
   .popup.xwide{width:min(840px,96vw)}
@@ -1367,7 +1379,19 @@
 </div>
 
 <!-- Anfrageübersicht -->
-<div class="popup wide" id="requestsPopup">
+<!-- Markendetails (aus der Detailzeile „Mehr anzeigen") -->
+<div class="popup wide" id="brandDetailPopup">
+  <div class="popup-head">
+    <h3 id="bdpTitle">Markendetails</h3>
+    <button class="x-close" style="margin-left:auto" onclick="closeBrandDetails()">✕</button>
+  </div>
+  <div class="popup-body" id="bdpBody"></div>
+  <div class="popup-foot">
+    <button class="btn btn-primary" style="flex:1" onclick="closeBrandDetails()">Schließen</button>
+  </div>
+</div>
+
+<div class="popup xwide" id="requestsPopup">
   <div class="popup-head">
     <h3>👤 Dein Account</h3>
     <button class="btn btn-ghost" style="margin-left:auto;padding:7px 12px;font-size:12.5px" onclick="closeRequestsOverview();openProfileEdit()">📝 Profil bearbeiten</button>
@@ -1381,6 +1405,30 @@
   <div class="popup-body" id="requestsBody" style="display:none"></div>
   <div class="popup-foot">
     <button class="btn btn-primary" style="flex:1" onclick="closeRequestsOverview()">Schließen</button>
+  </div>
+</div>
+
+<!-- Verhandlungs-Popup (Gegenvorschlag / Ablehnen) -->
+<div class="popup" id="negPopup" style="z-index:70">
+  <div class="popup-head">
+    <h3 id="negTitle">Gegenvorschlag</h3>
+    <button class="x-close" style="margin-left:auto" onclick="closeNeg()">✕</button>
+  </div>
+  <div class="popup-body">
+    <div class="field" id="negProvWrap">
+      <label>Deine Wunsch-Provision (%)</label>
+      <input type="number" id="negProv" min="0" max="100" step="1" style="width:150px">
+      <div class="field-hint" id="negProvHint"></div>
+    </div>
+    <div class="field">
+      <label id="negMsgLabel">Nachricht an die Marke <span style="font-weight:400">(optional)</span></label>
+      <textarea id="negMsg" rows="3" placeholder="…"></textarea>
+    </div>
+    <div class="form-err" id="negErr" style="display:none"></div>
+  </div>
+  <div class="popup-foot">
+    <button class="btn btn-ghost" onclick="closeNeg()">Abbrechen</button>
+    <button class="btn btn-primary" id="negSubmit" onclick="submitNeg()">Senden</button>
   </div>
 </div>
 
@@ -1608,6 +1656,11 @@ function prodImg(p){
   if(p.bild_url) return `<img src="${esc(p.bild_url)}" loading="lazy" alt=""
     onerror="this.style.display='none'">`;
   return '📦';
+}
+/* Thumbnail für Anfrage-Karten — nutzt storageUrl (relative Pfade + volle URLs korrekt) */
+function thumbImg(p){
+  const u = (p && p.bild_url) ? storageUrl(p.bild_url) : '';
+  return u ? `<img src="${esc(u)}" loading="lazy" alt="" onerror="this.parentNode.textContent='📦'">` : '📦';
 }
 /* --- Mehrbild-Galerie (Hover + Pfeile) --- */
 // ⚠️ UMSTELLUNG AUF CLOUDFLARE R2 — siehe Brandpool/BILDSPEICHER.md
@@ -2030,12 +2083,14 @@ function renderBrandDetails(b){
     ? '<button type="button" class="bd-link" onclick="openGelistet()">'
       + escTxt(kanaele.length + (kanaele.length === 1 ? ' Kanal' : ' Kanälen')) + '</button>'
     : '';
+  const moreHtml = '<button type="button" class="bd-more" onclick="openBrandDetails()">Mehr anzeigen</button>';
   const cells = [
     ['Gegründet', b.gruendungsjahr, 'text'],
     ['Social', socialHtml, 'html'],
     ['Barcode / EAN', b.ean, 'text'],
     ['Eurolochung', b.eurolochung, 'text'],
-    ['Gelistet in', gelistetHtml, 'html']
+    ['Gelistet in', gelistetHtml, 'html'],
+    ['', moreHtml, 'html']
   ];
   const has = cells.some(function(c){ return c[2]==='html' ? !!c[1] : (c[1]!=null && String(c[1]).trim()!==''); });
   if(!has){ box.innerHTML=''; box.style.display='none'; if(head) head.classList.remove('has-details'); return; }
@@ -2047,6 +2102,43 @@ function renderBrandDetails(b){
     else { const raw=(v!=null&&String(v).trim()!=='')?String(v).trim():'—'; inner='<span class="bd-v'+(raw==='—'?' off':'')+'">'+escTxt(raw)+'</span>'; }
     return '<span class="bd-i"><span class="bd-k">'+escTxt(k)+'</span> '+inner+'</span>';
   }).join('');
+}
+function openBrandDetails(){
+  const b = activeBrand; if(!b) return;
+  const row = function(k,v){ return (v!=null && String(v).trim()!=='')
+    ? '<div class="bdp-row"><span class="bdp-k">'+escTxt(k)+'</span><span class="bdp-v">'+v+'</span></div>' : ''; };
+  const socs=[['instagram',b.instagram],['facebook',b.facebook],['tiktok',b.tiktok],['linkedin',b.linkedin]]
+    .filter(function(s){ return s[1]!=null && String(s[1]).trim()!==''; });
+  const socHtml = socs.map(function(s){
+    const label=s[0].charAt(0).toUpperCase()+s[0].slice(1);
+    return '<a href="'+esc(socialUrl(s[0],s[1]))+'" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">'+escTxt(label)+'</a>';
+  }).join(' · ');
+  const gelistet = (b.bereits_gelistet||'').trim();
+  let html = '<div class="bdp-sec">Stammdaten</div>';
+  html += row('Gegründet', escTxt(b.gruendungsjahr));
+  html += socHtml ? row('Social', socHtml) : '';
+  html += row('Barcode / EAN', escTxt(b.ean));
+  html += row('Eurolochung', escTxt(b.eurolochung));
+  html += gelistet ? row('Gelistet in', escTxt(gelistet)) : '';
+  if([b.jahresumsatz,b.werbebudget,b.display].some(function(x){return x&&String(x).trim();})){
+    html += '<div class="bdp-sec">Für Händler zur Einordnung</div>';
+    html += row('Jahresumsatz', escTxt(b.jahresumsatz));
+    html += row('Werbebudget', escTxt(b.werbebudget));
+    let disp = b.display ? escTxt(b.display) : '';
+    if(disp && b.display_note && String(b.display_note).trim())
+      disp += ' <span style="color:var(--muted);font-weight:400">('+escTxt(b.display_note)+')</span>';
+    html += disp ? row('Aufsteller / Display', disp) : '';
+  }
+  document.getElementById('bdpTitle').textContent = (b.name||'Marke') + ' — Markendetails';
+  document.getElementById('bdpBody').innerHTML = html || '<div class="state-msg">Noch keine weiteren Angaben.</div>';
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('brandDetailPopup').classList.add('open');
+}
+function closeBrandDetails(){
+  document.getElementById('brandDetailPopup').classList.remove('open');
+  const modalOpen = document.getElementById('brandModal').classList.contains('open');
+  const drawerOpen = document.getElementById('drawer').classList.contains('open');
+  if(!modalOpen && !drawerOpen) document.getElementById('overlay').classList.remove('open');
 }
 function openBrand(id, carry){
   activeBrand = dataProvider.getBrands().find(b => b.marken_id === id);
@@ -2543,10 +2635,12 @@ function closeFaq(){
     document.getElementById('overlay').classList.remove('open');
 }
 /* ---- Anfrageübersicht ---- */
-function openRequestsOverview(){
-  renderRequestsOverview();
+async function openRequestsOverview(){
   document.getElementById('overlay').classList.add('open');
   document.getElementById('requestsPopup').classList.add('open');
+  document.getElementById('requestsBody').innerHTML = '<div class="cart-empty" style="padding:30px">Lädt …</div>';
+  if(session.loggedIn) await loadMyRequests();
+  renderRequestsOverview();
 }
 function renderRequestsOverview(){
   const body = document.getElementById('requestsBody');
@@ -2557,17 +2651,27 @@ function renderRequestsOverview(){
     return;
   }
   body.innerHTML = myRequests.map(r => {
-    const d = new Date(r.ts).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const groups = r.groups.map(g => `
-      <div class="req-brand">
-        <div class="req-brand-head"><div class="req-brand-name">${escTxt(g.name)}</div></div>
-        ${g.list.map(p => `<div class="req-prod"><span>${escTxt(p.name)}</span>${p.qty?`<span class="q">ca. ${p.qty} Stk / Monat</span>`:''}</div>`).join('')}
-      </div>`).join('');
-    return `<div style="margin-bottom:16px">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">
-        ${d} · ${r.prodCount} ${r.prodCount===1?'Produkt':'Produkte'} · ${r.brandCount} ${r.brandCount===1?'Lieferant':'Lieferanten'}</div>
-      <div class="req-summary">${groups}</div>
-      ${r.nachricht?`<div class="cc-note" style="margin-top:8px">📝 ${escTxt(r.nachricht)}</div>`:''}
+    const d = new Date(r.ts).toLocaleDateString('de-DE');
+    const statusLabel = r.status==='angenommen' ? 'Angenommen'
+      : r.status==='abgelehnt' ? 'Abgelehnt'
+      : (r.wer_dran==='haendler' ? 'Gegenvorschlag der Marke — du bist dran' : 'Warte auf die Marke');
+    const prods = r.items.map(p => `<div class="req-prod"><span>${escTxt(p.name)}</span>${p.qty?`<span class="q">ca. ${p.qty} Stk / Monat</span>`:''}</div>`).join('');
+    const thumbs = r.items.slice(0,6).map(p => `<div class="t">${p.imgHtml||'📦'}</div>`).join('');
+    return `<div class="req-brand" style="margin-bottom:14px">
+      <div class="req-brand-head"><div class="req-brand-name">${escTxt(r.brandName)}</div>
+        <span style="margin-left:auto;font-size:12px;color:var(--muted)">${d}</span></div>
+      ${thumbs?`<div class="inreq-strip">${thumbs}</div>`:''}
+      ${prods}
+      <div style="margin-top:8px;font-size:13px;color:var(--muted)">Aktuell auf dem Tisch:
+        <b style="color:var(--text)">${r.provision!=null?escTxt(String(r.provision))+' % Provision':'—'}</b>
+        · <b style="color:var(--text)">${statusLabel}</b></div>
+      ${negThreadH(r.verlauf)}
+      ${r.status==='neu' && r.wer_dran==='haendler' ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="negAccept('out','${r.rbId}')">Zu ${escTxt(String(r.provision))} % annehmen</button>
+        <button class="btn btn-ghost" onclick="openNeg('counter','out','${r.rbId}')">Gegenvorschlag</button>
+        <button class="btn btn-ghost" onclick="openNeg('decline','out','${r.rbId}')">Ablehnen</button></div>` : ''}
+      ${r.status==='angenommen' ? `<div class="cc-note" style="margin-top:8px;background:var(--green-soft)">Angenommen zu ${escTxt(String(r.provision))} % — die Marke meldet sich bei dir.</div>` : ''}
+      ${r.nachricht ? `<div class="cc-note" style="margin-top:8px">📝 ${escTxt(r.nachricht)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -2636,12 +2740,17 @@ function validateProfile(p){
   if(!p.addr) return 'Bitte die Geschäftsadresse eingeben.';
   return null;
 }
+/* Demo: alle @spreat.com-Kollegen teilen sich EINEN Händler-Datensatz (Demo-Laden).
+   DB routet den Anfrage-RPC serverseitig ebenfalls dorthin. */
+const DEMO_RETAILER_ID = '7a1cb0da-66a4-443b-81ea-50a9007d37a7';
+function isSpreatEmail(e){ return /@spreat\.com$/i.test(e||''); }
 async function saveProfile(){
   const {data:{user}} = await sb.auth.getUser();
   if(!user) return false;
   const p = pendingProfile;
+  const rid = isSpreatEmail(user.email) ? DEMO_RETAILER_ID : user.id;
   const {error} = await sb.from('retailers').upsert({
-    id: user.id,
+    id: rid,
     email: p.email,
     ansprechpartner_name: p.name,
     ansprechpartner_funktion: p.role,
@@ -2650,12 +2759,20 @@ async function saveProfile(){
     anzahl_filialen: parseInt(p.stores) || null,
     handelsvolumen: p.volume,
     adresse: p.addr,
+    verkaufsflaeche_qm: parseInt(p.area) || null,
+    preis_positionierung: p.pricing || null,
+    no_gos: (p.noGos && p.noGos.length) ? p.noGos : null,
+    praeferenzen: (p.prefs && p.prefs.length) ? p.prefs : null,
+    gesuche: (p.seeking && p.seeking.length) ? p.seeking : null,
+    offenheits_status: p.status || 'offen',
     status: 'neu'
   });
   if(error){ console.error('saveProfile', error); return false; }
-  session.profile = {name:p.name, role:p.role, phone:p.phone, email:p.email,
-    branch:p.branch, stores:p.stores, volume:p.volume, addr:p.addr};
-  // Die Spreat-Benachrichtigung läuft serverseitig über einen DB-Trigger auf der retailers-Tabelle.
+  session.profile = p;
+  // In der Prepage-Session merken (Fotos NICHT in localStorage — data-URLs zu groß)
+  try{ const forStore = Object.assign({}, p); delete forStore.photos;
+    saveSession20({role:'haendler', email:p.email, profile:forStore, ts:Date.now()}); }catch(e){}
+  // Spreat-Benachrichtigung läuft serverseitig über einen DB-Trigger auf der retailers-Tabelle.
   return true;
 }
 async function submitProfile(){
@@ -2816,36 +2933,128 @@ function closeLogin(){
     document.getElementById('overlay').classList.remove('open');
 }
 async function loadProfile(userId){
-  const {data} = await sb.from('retailers').select('*').eq('id', userId).maybeSingle();
+  // Demo: @spreat.com lädt den geteilten Demo-Laden statt eines eigenen Profils
+  const rid = isSpreatEmail(session.email) ? DEMO_RETAILER_ID : userId;
+  const {data} = await sb.from('retailers').select('*').eq('id', rid).maybeSingle();
   if(data){
     session.profile = {
       name:data.ansprechpartner_name, role:data.ansprechpartner_funktion,
       phone:data.telefon, email:data.email, branch:data.branche,
-      stores:data.anzahl_filialen, volume:data.handelsvolumen, addr:data.adresse
+      stores:data.anzahl_filialen, volume:data.handelsvolumen, addr:data.adresse,
+      area:data.verkaufsflaeche_qm, pricing:data.preis_positionierung,
+      noGos:data.no_gos||[], prefs:data.praeferenzen||[], seeking:data.gesuche||[],
+      status:data.offenheits_status||'offen', verified:!!data.verified
     };
   }
 }
 async function loadMyRequests(){
   myRequests = [];
   try{
-    const {data,error} = await sb.from('requests')
-      .select('id,nachricht,status,created_at,request_items(produkt_id,menge_pro_monat)')
+    // Pro Marke eine Karte (request_brands) inkl. Verhandlungsstand
+    const {data,error} = await sb.from('request_brands')
+      .select('id,marken_id,status,provision,wer_dran,verlauf,typ,requests(id,nachricht,created_at,request_items(produkt_id,menge_pro_monat))')
       .order('created_at',{ascending:false});
     if(error || !data) return;
-    myRequests = data.map(r => {
-      const byBrand = {};
-      (r.request_items||[]).forEach(it => {
-        const p = findProduct(it.produkt_id);
-        const brand = p ? dataProvider.getBrands().find(b=>b.marken_id===p.marken_id) : null;
-        const bid = brand ? brand.marken_id : (p ? p.marken_id : it.produkt_id);
-        (byBrand[bid] = byBrand[bid] || {name: brand?brand.name:'Lieferant', list:[]})
-          .list.push({name: p?p.produktname:it.produkt_id, qty: it.menge_pro_monat});
-      });
-      const groups = Object.values(byBrand);
-      return {ts:new Date(r.created_at).getTime(), nachricht:r.nachricht||'',
-        groups, brandCount:groups.length, prodCount:(r.request_items||[]).length};
+    myRequests = data.map(rb => {
+      const req = rb.requests || {};
+      const brand = dataProvider.getBrands().find(b=>b.marken_id===rb.marken_id);
+      const items = (req.request_items||[])
+        .filter(it => { const p=findProduct(it.produkt_id); return p && p.marken_id===rb.marken_id; })
+        .map(it => { const p=findProduct(it.produkt_id); return {name:p?p.produktname:it.produkt_id, qty:it.menge_pro_monat, imgHtml:p?thumbImg(p):''}; });
+      return {rbId:rb.id, brandName: brand?brand.name:'Lieferant',
+        ts: req.created_at?new Date(req.created_at).getTime():Date.now(),
+        nachricht:req.nachricht||'', items,
+        status:rb.status, provision:rb.provision, wer_dran:rb.wer_dran||'',
+        verlauf:Array.isArray(rb.verlauf)?rb.verlauf:[]};
     });
-  }catch(e){ /* RLS/Netz -> still leer, In-Session-Anfragen bleiben */ }
+  }catch(e){ /* RLS/Netz -> still leer */ }
+}
+function negThreadH(v){
+  if(!Array.isArray(v)||v.length<2) return '';
+  return '<div style="margin-top:8px;border-left:2px solid var(--border);padding-left:10px;display:flex;flex-direction:column;gap:3px">'
+    + v.map(e=>{ const who=e.von==='marke'?'Marke':'Du';
+        const t=(e.text&&e.text!=='Erstanfrage')?' — '+escTxt(e.text):'';
+        return `<div style="font-size:12.5px;color:var(--muted)"><b style="color:var(--text)">${who}</b> ${e.provision!=null?escTxt(String(e.provision))+' %':''}${t}</div>`;
+      }).join('') + '</div>';
+}
+/* ============================================================
+   EINHEITLICHE VERHANDLUNG — beide Richtungen mit gleicher Mechanik:
+   list='out' = Deine Anfragen an Marken (echte DB, request_brands)
+   list='in'  = Anfragen von Marken (Demo, in-memory — Marke→Händler)
+   In beiden: Annehmen (zu X %) / Gegenvorschlag / Ablehnen (+ optionaler Grund).
+   ============================================================ */
+function negItem(list,id){ return list==='out' ? myRequests.find(x=>x.rbId===id) : (incomingReqs||[]).find(x=>x.id===id); }
+function negName(list,r){ return list==='out' ? (r.brandName||'die Marke') : (r.b?r.b.name:'die Marke'); }
+function negRerender(list){ if(list==='out') renderRequestsOverview(); else renderIncoming(); }
+async function negPersist(list,id,patch){
+  if(list==='out'){
+    const {error}=await sb.from('request_brands').update(patch).eq('id',id);
+    if(error){ console.error(error); return false; }
+    return true;
+  }
+  // 'in' = Marke→Händler: echte brand_requests persistieren, Demo nur in-memory
+  const r=(incomingReqs||[]).find(x=>x.id===id);
+  if(r && r.real && r.brId){
+    const {error}=await sb.from('brand_requests').update(patch).eq('id',r.brId);
+    if(error){ console.error(error); return false; }
+  }
+  return true;
+}
+async function negAccept(list,id){
+  const r=negItem(list,id); if(!r) return;
+  const verlauf=(r.verlauf||[]).concat([{von:'haendler',provision:r.provision,text:'Angenommen',ts:new Date().toISOString()}]);
+  if(!await negPersist(list,id,{status:'angenommen',wer_dran:'',verlauf})) return;
+  r.status='angenommen'; r.wer_dran=''; r.verlauf=verlauf; negRerender(list);
+}
+/* ---- Verhandlungs-Popup (Gegenvorschlag / Ablehnen mit optionalem Grund) ---- */
+let _negMode=null, _negList=null, _negId=null;
+function openNeg(mode, list, id){
+  _negMode=mode; _negList=list; _negId=id;
+  const r=negItem(list,id); const nm=r?negName(list,r):'';
+  document.getElementById('negErr').style.display='none';
+  document.getElementById('negMsg').value='';
+  const gegen = (list==='out') ? 'an die Marke' : 'an '+nm;
+  if(mode==='counter'){
+    document.getElementById('negTitle').textContent = 'Gegenvorschlag'+(nm?' – '+nm:'');
+    document.getElementById('negProvWrap').style.display='';
+    document.getElementById('negProv').value = (r&&r.provision!=null)?r.provision:'';
+    document.getElementById('negProvHint').textContent = r&&r.provision!=null?('Aktuell auf dem Tisch: '+r.provision+' %'):'';
+    document.getElementById('negMsgLabel').innerHTML='Nachricht '+gegen+' <span style="font-weight:400">(optional)</span>';
+    document.getElementById('negMsg').placeholder='z. B. Bei 27 % wären wir sofort dabei.';
+    document.getElementById('negSubmit').textContent='Gegenvorschlag senden';
+  } else {
+    document.getElementById('negTitle').textContent = 'Ablehnen'+(nm?' – '+nm:'');
+    document.getElementById('negProvWrap').style.display='none';
+    document.getElementById('negMsgLabel').innerHTML='Grund <span style="font-weight:400">(optional)</span>';
+    document.getElementById('negMsg').placeholder='z. B. Passt aktuell nicht in unser Sortiment.';
+    document.getElementById('negSubmit').textContent='Ablehnen';
+  }
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('negPopup').classList.add('open');
+  setTimeout(()=>{ const el=document.getElementById(mode==='counter'?'negProv':'negMsg'); if(el) el.focus(); },40);
+}
+function closeNeg(){
+  document.getElementById('negPopup').classList.remove('open');
+  if(!document.getElementById('requestsPopup').classList.contains('open') &&
+     !document.getElementById('drawer').classList.contains('open'))
+    document.getElementById('overlay').classList.remove('open');
+}
+async function submitNeg(){
+  const r=negItem(_negList,_negId); if(!r){ closeNeg(); return; }
+  const err=document.getElementById('negErr');
+  const msg=(document.getElementById('negMsg').value||'').trim();
+  if(_negMode==='counter'){
+    const val=parseFloat(String(document.getElementById('negProv').value).replace(',','.'));
+    if(isNaN(val)||val<0||val>100){ err.textContent='Bitte eine Provision zwischen 0 und 100 % eingeben.'; err.style.display=''; return; }
+    const verlauf=(r.verlauf||[]).concat([{von:'haendler',provision:val,text:msg,ts:new Date().toISOString()}]);
+    if(!await negPersist(_negList,_negId,{provision:val,wer_dran:'marke',status:'neu',verlauf})){ err.textContent='Konnte nicht senden.'; err.style.display=''; return; }
+    r.provision=val; r.wer_dran='marke'; r.status='neu'; r.verlauf=verlauf;
+  } else {
+    const verlauf=(r.verlauf||[]).concat([{von:'haendler',provision:r.provision,text:msg||'Abgelehnt',ts:new Date().toISOString()}]);
+    if(!await negPersist(_negList,_negId,{status:'abgelehnt',wer_dran:'',verlauf})){ err.textContent='Konnte nicht speichern.'; err.style.display=''; return; }
+    r.status='abgelehnt'; r.wer_dran=''; r.verlauf=verlauf;
+  }
+  closeNeg(); negRerender(_negList);
 }
 async function restoreSession(){
   const {data} = await sb.auth.getSession();
@@ -2909,7 +3118,7 @@ function openCart(){
   document.getElementById('drawer').classList.add('open');
 }
 function closeAll(fromPop){
-  ['overlay','brandModal','drawer','contactPopup','requestPopup','requestsPopup','faqPopup','flowPopup','navMenu','profilePopup','loginPopup','productPopup','gelistetPopup']
+  ['overlay','brandModal','drawer','contactPopup','requestPopup','requestsPopup','faqPopup','flowPopup','navMenu','profilePopup','loginPopup','productPopup','gelistetPopup','brandDetailPopup','negPopup']
     .forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('open'); });
   document.body.classList.remove('shopview');
   if(!fromPop && new URLSearchParams(location.search).get('marke')) history.pushState({},'',location.pathname);
@@ -3196,60 +3405,84 @@ submitProfile = function(){
    zum Einschätzen) + "Deine Anfragen an Marken" (bisherige Liste)
    ============================================================ */
 let incomingReqs=null;
-function seedIncoming(){
-  if(incomingReqs) return;
+/* Demo (in-memory, replaybar) — Anfrage von Brudi & Brezel + einer weiteren Marke */
+function demoIncoming(){
   const bs=(_brands&&_brands.length)?dataProvider.getBrands():[];
-  if(!bs.length) return;
-  const b1=bs[0], b2=bs[Math.min(2,bs.length-1)];
-  incomingReqs=[
-    {id:'in1', b:b1, status:'neu', date:'21.07.2026, 09:14', prov:'25 % Provision',
-     start:'Startpaket: 12 Produkte + Thekendisplay, Ware auf Kommission',
-     msg:'Mooin! Wir haben dein Ladenprofil gesehen — unsere Bestseller passen genau zu deinem Sortiment. Wir würden gern mit einem kleinen Startpaket bei dir loslegen. Kein Risiko für dich: Die Ware bleibt unser Eigentum, du verdienst pro Verkauf.'},
-    {id:'in2', b:b2, status:'neu', date:'19.07.2026, 16:40', prov:'30 % Provision',
-     start:'Erstausstattung kostenlos, Nachschub automatisch',
-     msg:'Wir expandieren gerade in deine Region und suchen genau einen Laden wie deinen. Erstausstattung übernehmen wir komplett — du stellst nur die Fläche.'}
+  if(!bs.length) return [];
+  const bb = bs.find(x=>x.marken_id==='brudibrezel') || bs[0];
+  const b2 = bs.find(x=>x.marken_id!=='brudibrezel' && x.productCount>0) || bs[Math.min(2,bs.length-1)];
+  const prov1=30, prov2=25;
+  return [
+    {id:'in1', b:bb, status:'neu', wer_dran:'haendler', provision:prov1, date:'vor 2 Tagen',
+     msg:'Mooin! Wir haben dein Ladenprofil gesehen — unsere Deutschland-Fanartikel passen gerade zur EM perfekt in deine Innenstadt-Lage. Wir bieten dir '+prov1+' % Provision, Ware auf Kommission. Kein Risiko: Die Ware bleibt unser Eigentum, du verdienst nur pro Verkauf.',
+     verlauf:[{von:'marke',provision:prov1,text:'Erstangebot'}]},
+    {id:'in2', b:b2, status:'neu', wer_dran:'haendler', provision:prov2, date:'vor 5 Tagen',
+     msg:'Hallo! Wir von '+(b2?b2.name:'unserer Marke')+' würden unsere Produkte gern bei dir listen. Angebot: '+prov2+' % Provision, Lieferung auf Kommission — für dich kein Einkaufsrisiko.',
+     verlauf:[{von:'marke',provision:prov2,text:'Erstangebot'}]}
   ];
 }
+/* ECHTE Marke→Händler-Anfragen aus der DB (brand_requests) für diesen Händler / Demo-Laden */
+async function loadRealIncoming(){
+  if(!session.loggedIn) return [];
+  const {data,error}=await sb.from('brand_requests')
+    .select('id,marken_id,nachricht,provision,wer_dran,status,verlauf,created_at,brand_request_items(produkt_id,menge_pro_monat)')
+    .order('created_at',{ascending:false});
+  if(error||!data) return [];
+  const brands=dataProvider.getBrands();
+  return data.map(br=>{
+    const b=brands.find(x=>x.marken_id===br.marken_id) || {marken_id:br.marken_id,name:'Marke',productCount:0,avgCart:0,kurzbeschreibung:'',verified:false};
+    const itemProds=(br.brand_request_items||[]).map(it=>findProduct(it.produkt_id)).filter(Boolean);
+    return {id:'br-'+br.id, real:true, brId:br.id, b,
+      status:br.status||'neu', wer_dran:br.wer_dran||'', provision:br.provision,
+      date: br.created_at?new Date(br.created_at).toLocaleDateString('de-DE'):'',
+      msg:br.nachricht||'', verlauf:Array.isArray(br.verlauf)?br.verlauf:[], itemProds};
+  });
+}
+async function loadIncoming(){ incomingReqs = (await loadRealIncoming()).concat(demoIncoming()); }
 function renderIncoming(){
   const w=document.getElementById('reqInBody'); if(!w) return;
-  seedIncoming();
   if(!incomingReqs){ w.innerHTML='<div class="state-msg">Lade …</div>'; return; }
   const badge=document.getElementById('accInBadge');
-  const neu=incomingReqs.filter(r=>r.status==='neu').length;
+  const neu=incomingReqs.filter(r=>r.status==='neu' && r.wer_dran==='haendler').length;
   badge.style.display=neu?'':'none'; badge.textContent=neu;
   w.innerHTML = incomingReqs.map(r=>{
     const b=r.b;
-    const ps=dataProvider.getProducts(b.marken_id).filter(p=>p.sichtbar!==false).slice(0,4);
+    const ps=(r.itemProds&&r.itemProds.length)?r.itemProds:dataProvider.getProducts(b.marken_id).filter(p=>p.sichtbar!==false).slice(0,5);
     const slug=(b.name||'marke').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const statusLabel = r.status==='angenommen'?'Angenommen'
+      : r.status==='abgelehnt'?'Abgelehnt'
+      : (r.wer_dran==='marke'?'Dein Gegenvorschlag liegt bei der Marke':'Neu — du bist dran');
     return `<div class="inreq ${r.status==='angenommen'?'accepted':r.status==='abgelehnt'?'declined':''}">
       <div class="inreq-head">
         ${brandLogoHtml(b)}
         <div>
-          <div class="inreq-name">${escTxt(b.name)} ${r.id==='in1'?verifStampHtml(false):''}</div>
+          <div class="inreq-name">${escTxt(b.name)} ${(b.verified||b.marken_id==='brudibrezel')?verifStampHtml(false):''}</div>
           <div style="font-size:12.5px;color:var(--muted)">${escTxt(b.kurzbeschreibung||'')}</div>
         </div>
         <span class="inreq-date">${r.date}</span>
       </div>
       <div class="inreq-meta">
-        <span class="meta-pill">↑ ${r.prov} für dich</span>
         <span class="meta-pill">${b.productCount} Produkte</span>
         <span class="meta-pill">Ø Warenkorb ${eur(b.avgCart)}</span>
         ${b.website?`<a class="meta-pill" href="${esc(b.website)}" target="_blank" rel="noopener" style="text-decoration:none">Website ➜</a>`:''}
       </div>
       <div class="inreq-msg">„${escTxt(r.msg)}"</div>
-      <div class="inreq-desc"><b>Angebot:</b> ${escTxt(r.start)}</div>
-      ${ps.length?`<div class="inreq-strip">${ps.map(p=>`<div class="t">${prodImg(p)}</div>`).join('')}</div>`:''}
-      ${r.status==='neu'?`
+      ${ps.length?`<div class="inreq-strip">${ps.map(p=>`<div class="t">${thumbImg(p)}</div>`).join('')}</div>`:''}
+      <div style="margin-top:10px;font-size:13px;color:var(--muted)">Auf dem Tisch:
+        <b style="color:var(--text)">${r.provision!=null?escTxt(String(r.provision))+' % Provision für dich':'—'}</b>
+        · <b style="color:var(--text)">${statusLabel}</b></div>
+      ${negThreadH(r.verlauf)}
+      ${r.status==='neu' && r.wer_dran==='haendler'?`
         <div class="inreq-actions">
-          <button class="btn btn-ghost" onclick="closeRequestsOverview();openBrand('${b.marken_id}','')">Marke im Brandpool ansehen</button>
-          <button class="btn btn-primary" onclick="accDecide('${r.id}','angenommen')">✓ Interessiert — Kontakt freigeben</button>
-          <button class="btn btn-decline" onclick="accDecide('${r.id}','abgelehnt')">Ablehnen</button>
+          <button class="btn btn-ghost" onclick="closeRequestsOverview();openBrand('${b.marken_id}','')">Marke ansehen</button>
+          <button class="btn btn-primary" onclick="negAccept('in','${r.id}')">Zu ${escTxt(String(r.provision))} % annehmen</button>
+          <button class="btn btn-ghost" onclick="openNeg('counter','in','${r.id}')">Gegenvorschlag</button>
+          <button class="btn btn-decline" onclick="openNeg('decline','in','${r.id}')">Ablehnen</button>
         </div>`
       :r.status==='angenommen'?`
-        <div class="inreq-contact">🎉 <b>Kontakt freigegeben!</b> Die Marke wurde informiert und meldet sich direkt bei dir.
-          Direktkontakt: <b>kontakt@${slug}.de</b></div>
-        <div style="margin-top:8px"><span class="inreq-status acc">Angenommen</span></div>`
-      :`<div style="margin-top:10px"><span class="inreq-status dec">Abgelehnt</span></div>`}
+        <div class="inreq-contact">🎉 <b>Angenommen zu ${escTxt(String(r.provision))} %!</b> Die Marke wurde informiert und meldet sich direkt bei dir. Direktkontakt: <b>kontakt@${slug}.de</b></div>`
+      :r.status==='abgelehnt'?`<div style="margin-top:10px"><span class="inreq-status dec">Abgelehnt</span></div>`
+      :`<div style="margin-top:10px;font-size:12.5px;color:var(--muted)">Wartet auf die Antwort der Marke …</div>`}
     </div>`;
   }).join('') || '<div class="state-msg">Noch keine Anfragen von Marken.</div>';
 }
@@ -3264,8 +3497,10 @@ function accSwitch(t){
   document.getElementById('accTabOut').classList.toggle('active',t==='out');
 }
 const _oro20 = openRequestsOverview;
-openRequestsOverview = function(){ _oro20.apply(this,arguments); renderIncoming(); accSwitch('out'); };
-function openAccount(){ _oro20(); renderIncoming(); accSwitch('in'); }
+openRequestsOverview = function(){ _oro20.apply(this,arguments); accSwitch('out'); loadIncoming().then(renderIncoming); };
+function openAccount(){ _oro20(); accSwitch('in');
+  document.getElementById('reqInBody').innerHTML='<div class="state-msg">Lade …</div>';
+  loadIncoming().then(renderIncoming); }
 
 /* Topbar: E-Mail-Chip -> "Account"-Button */
 renderAuth = function(){
@@ -3355,7 +3590,7 @@ function pfRemoveTag(kind,i){ pfTags[kind].splice(i,1); renderPfTags(kind); }
 
 /* ---- Verifizier-Stempel ---- */
 function verifStampHtml(big){
-  return `<span class="verif-stamp${big?' big':''}"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Verifiziert</span>`;
+  return `<img class="verif-stamp${big?' big':''}" src="../shared/spreat-verifiziert-stempel-256.png" alt="Spreat verifiziert" title="Spreat verifiziert" loading="lazy">`;
 }
 function pfSetStamp(on){
   const s=document.getElementById('pfVerifStamp'); if(!s) return;
@@ -3420,25 +3655,9 @@ validateProfile = function(p){
 };
 
 /* ---- Simulierter Submit (kein echter Account / keine Mail) ---- */
-submitProfile = function(){
-  const p = collectProfile();
-  const err = document.getElementById('pfErr');
-  const msg = validateProfile(p);
-  if(msg){ err.textContent=msg; err.style.display=''; return; }
-  err.style.display='none';
-  session.loggedIn = true; session.email = p.email; session.profile = p;
-  gateActive = false;
-  document.getElementById('prepage').classList.add('hidden'); // Sperre auf: Brandpool ist jetzt frei
-  renderAuth(); if(typeof renderCart==='function') renderCart(); if(_brands) renderBrands();
-  document.getElementById('profilePopup').classList.remove('open');
-  if(typeof profileEditMode!=='undefined' && profileEditMode){
-    profileEditMode=false;
-    if(!document.getElementById('drawer').classList.contains('open'))
-      document.getElementById('overlay').classList.remove('open');
-  } else {
-    document.getElementById('overlay').classList.remove('open');
-  }
-};
+/* LIVE: kein simulierter Submit mehr — der echte OTP-Flow (Original-submitProfile +
+   confirmProfileCode → saveProfile schreibt in retailers) ist aktiv. Der Persistenz-
+   Wrapper weiter oben (saveSession20) sorgt fürs Angemeldet-Bleiben. */
 
 /* ---- Abbrechen im Gate → zurück zur Prepage-Sperre (kein heimlicher Brandpool-Zugang) ---- */
 const _origCloseProfile = closeProfile;
