@@ -1296,7 +1296,7 @@ function seedInReqDemo(){
     preis_positionierung:r.pricing, verified:r.verified,
     email:'einkauf@'+String(r.name||'laden').toLowerCase().replace(/[^a-z0-9]+/g,'')+'.de', telefon:''});
   const def=Math.round(brand.defaultMargin||20);
-  const demoLaden={name:'Spreat Demo-Laden',city:'Meppen',branch:'Feinkostladen',stores:2,area:120,volume:'20.000–50.000 €',pricing:'Gehoben',verified:true};
+  const demoLaden={name:'Altstadt Manufaktur',city:'Osnabrück',branch:'Feinkostladen',stores:1,area:95,volume:'20.000–50.000 €',pricing:'Gehoben',verified:true};
   const mk=(n,r,items,prov,wer,status,date,msg,extra)=>({id:'demo-'+n,typ:'anfrage',status,wer_dran:wer,provision:prov,date,
     nachricht:msg, ret:retCard(r), items,
     verlauf:[{von:'haendler',provision:def,text:'Erstanfrage'}].concat(extra||[])});
