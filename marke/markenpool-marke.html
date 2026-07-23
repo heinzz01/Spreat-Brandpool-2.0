@@ -19,18 +19,26 @@
   .wrap{max-width:1240px;margin:0 auto;padding:0 22px}
 
   .topbar{background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
-  .topbar .wrap{display:flex;align-items:center;gap:14px;height:60px}
+  .tb-top{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .tb-navrow{display:flex;align-items:stretch}
   .logo{display:flex;align-items:center;gap:9px}
   .logo-img{height:24px;display:block;filter:brightness(0) saturate(100%)}
   .logo-sub{font-weight:600;color:var(--muted);font-size:14px;letter-spacing:-.01em;padding-left:9px;border-left:1px solid var(--border)}
 
-  .tabs{display:flex;gap:22px;margin-left:auto;align-items:stretch;height:60px}
-  .tab{display:flex;align-items:center;padding:0 2px;font-size:14.5px;font-weight:600;color:var(--muted);background:none;border-bottom:2px solid transparent}
+  /* Konto rechts oben (Variante 3) */
+  .who{margin-left:auto;display:flex;align-items:center;gap:11px;white-space:nowrap}
+  .who .who-av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;flex:0 0 auto}
+  .who .who-nm{font-weight:700;font-size:14px;color:var(--text)}
+  .who .who-lo{color:var(--muted);font-size:12.5px;cursor:pointer;background:none;border:0;border-left:1px solid var(--border);padding:2px 0 2px 12px;font:inherit;display:inline-flex;align-items:center;gap:6px}
+  .who .who-lo:hover{color:var(--text)}
+
+  .tabs{display:flex;gap:24px;align-items:stretch;height:48px}
+  .tab{display:flex;align-items:center;padding:0 2px;font-size:14px;font-weight:600;color:var(--muted);background:none;border-bottom:2px solid transparent;cursor:pointer}
   .tab.active{color:var(--text);border-bottom-color:var(--accent)}
   .tab:hover{color:var(--text)}
   .pane{display:none}.pane.active{display:block}
   .pane-wrap{padding-top:22px}
-  @media(max-width:860px){.topbar .wrap{height:auto;flex-wrap:wrap;padding-top:10px}.tabs{height:auto;gap:16px;margin:6px 0 0 0;width:100%;flex-wrap:wrap;order:3}.tab{padding:6px 0}}
+  @media(max-width:700px){.tabs{gap:16px;flex-wrap:wrap;height:auto;padding:6px 0}.who .who-nm{display:none}}
 
   .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px}
   .btn{padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;transition:.12s;background:var(--bg);border:1px solid var(--border);color:var(--text)}
@@ -49,6 +57,8 @@
   .complete .ctxt{flex:1;font-size:13.5px;color:#7a5a00}
   .complete .ctxt b{color:#5a4300}
   .complete button{flex:0 0 auto}
+  .complete .cbox-x{flex:0 0 auto;width:28px;height:28px;padding:0;border:none;background:transparent;color:#b08a3a;font-size:15px;line-height:1;border-radius:8px;cursor:pointer}
+  .complete .cbox-x:hover{background:#f2e2b3;color:#5a4300}
 
   /* Profil */
   .profile-card{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
@@ -122,9 +132,10 @@
   .rphoto{aspect-ratio:16/10;border-radius:10px;position:relative;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#e9edf2,#dbe2ea);color:#8a94a2;font-size:26px}
   .rphoto span{position:absolute;left:8px;bottom:8px;background:rgba(16,18,29,.72);color:#fff;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px}
   .rcard h3{font-size:18px}
-  .rrow{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+  .rrow{display:grid;grid-template-columns:136px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px}
   .rrow:last-of-type{border-bottom:none}
-  .rrow .k{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+  .rrow .k{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding-top:2px;white-space:nowrap;line-height:1.3}
+  @media(max-width:520px){.rrow{grid-template-columns:1fr;gap:3px}.rrow .k{white-space:normal}}
   .chip-nogo{display:inline-block;background:var(--red-soft);border:1px solid #f2c9cb;color:#b42318;border-radius:999px;padding:3px 9px;font-size:12px;margin:2px 4px 2px 0}
   .chip-pref{display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 9px;font-size:12px;margin:2px 4px 2px 0}
   .status-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
@@ -143,7 +154,7 @@
   .poolmodal{position:fixed;z-index:65;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1020px,96vw);max-height:92vh;
     background:var(--card);border-radius:18px;box-shadow:0 30px 80px rgba(16,18,29,.4);display:none;flex-direction:column;overflow:hidden}
   .poolmodal.open{display:flex}
-  .pm-head{padding:20px 24px;border-bottom:1px solid var(--border)}
+  .pm-head{padding:20px 24px 8px;border-bottom:1px solid var(--border)}
   .pm-head-top{display:flex;gap:14px;align-items:flex-start}
   .pm-x{margin-left:auto;background:var(--bg);border-radius:9px;width:34px;height:34px;font-size:16px;flex:0 0 auto}
   .pm-title{font-size:22px;font-weight:800}
@@ -207,6 +218,52 @@
   .mini-head h3{font-size:16px}.mini-head .x{margin-left:auto;background:var(--bg);border-radius:8px;width:32px;height:32px}
   .mini-body{padding:16px 20px;overflow-y:auto}
   .mini-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+  /* Anfrage-Composer */
+  .req-quota{background:var(--green-soft);border:1px solid #bfe6cf;color:#177a42;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:14px}
+  .req-sec{margin-bottom:16px}
+  .req-sec-t{font-weight:700;font-size:14px;margin-bottom:2px}
+  .req-sec-h{font-size:12.5px;color:var(--muted);margin-bottom:8px;line-height:1.45}
+  .rq{color:#e2513a;font-weight:800}
+  #reqModal textarea,#reqModal input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font:inherit;font-size:13.5px;background:var(--card);color:var(--tx)}
+  .info-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1.5px solid #b9c0c9;color:#8a93a0;font-size:11px;font-weight:800;font-style:normal;cursor:help;vertical-align:1px}
+  /* Anfrage-Composer: Produkt-Picker */
+  .req-selbar{display:flex;flex-wrap:wrap;gap:6px;background:var(--green-soft);border:1px solid #bfe6cf;border-radius:10px;padding:8px;margin-bottom:10px}
+  .req-selchip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid #bfe6cf;border-radius:999px;padding:3px 6px 3px 9px;font-size:12px;color:#177a42;font-weight:600}
+  .req-selchip b{cursor:pointer;font-weight:800;opacity:.7}.req-selchip b:hover{opacity:1}
+  .req-pills{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px;scrollbar-width:thin}
+  .req-pills .cat-pill{flex:0 0 auto;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--tx)}
+  .req-pills .cat-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .req-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:300px;overflow-y:auto;padding:2px}
+  .req-pcard{border:1px solid var(--border);border-radius:11px;overflow:hidden;cursor:pointer;background:var(--card);position:relative;transition:.12s}
+  .req-pcard:hover{border-color:#c3cbd4}
+  .req-pcard.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .req-pcard .rpc-thumb{aspect-ratio:1.4;background:#fff;display:grid;place-items:center;font-size:26px;overflow:hidden;position:relative}
+  .req-pcard .rpc-thumb img{width:100%;height:100%;object-fit:contain}
+  .req-pcard .rpc-check{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid var(--border);display:grid;place-items:center;font-size:13px;color:transparent}
+  .req-pcard.sel .rpc-check{background:var(--accent);border-color:var(--accent);color:#fff}
+  .req-pcard .rpc-star{position:absolute;top:6px;left:6px;font-size:13px;color:#f2b01e}
+  .req-pcard .rpc-info{padding:7px 9px}
+  .req-pcard .rpc-name{font-size:12.5px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .req-pcard .rpc-price{font-size:12px;color:var(--muted);margin-top:3px}
+  /* Meine-Anfragen-Nav + Dashboard */
+  .tab-req{display:inline-flex;align-items:center;gap:7px}
+  .match-intro{background:var(--green-soft);border:1px solid #cdeeda;border-radius:14px;padding:16px 18px;margin-top:4px}
+  .match-intro h2{font-size:17px;margin-bottom:4px}
+  .match-intro p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0}
+  .req-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;padding:0 5px}
+  .myreq-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .myreq-tab{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--tx)}
+  .myreq-tab.active{background:var(--text);border-color:var(--text);color:#fff}
+  .mrq-item{border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:11px}
+  .mrq-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .mrq-name{font-weight:800;font-size:15px}
+  .mrq-date{margin-left:auto;font-size:12px;color:var(--muted)}
+  .mrq-st{font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px}
+  .mrq-st.pending{background:#fff3d6;color:#8a5a00}
+  .mrq-st.angenommen{background:var(--green-soft);color:#177a42}
+  .mrq-st.abgelehnt{background:#f1f1f1;color:#8a93a0}
+  .mrq-meta{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.5}
+  .mrq-contact{margin-top:9px;background:var(--green-soft);border:1px dashed var(--accent);border-radius:9px;padding:9px 11px;font-size:13px;color:#177a42}
   .field{display:flex;flex-direction:column;gap:5px;margin-top:12px}.field:first-child{margin-top:0}
   .field label{font-size:12.5px;font-weight:700}.field label .opt{font-weight:400;color:var(--muted)}
   .field input,.field textarea,.field select{border:1px solid var(--border);border-radius:9px;padding:9px 11px;font:inherit;font-size:13.5px;background:var(--card);outline:none}
@@ -232,7 +289,7 @@
   .web-link{background:none;border:none;padding:0 2px 3px;font:inherit;font-size:13.5px;font-weight:700;letter-spacing:-.01em;color:var(--text);text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px;white-space:nowrap;align-self:center}
   .web-link .ar{transition:transform .2s ease;font-weight:400}
   .web-link:hover .ar{transform:translateX(3px)}
-  .brand-details{width:100%;display:flex;justify-content:space-between;align-items:stretch;border-top:1px solid var(--border);margin-top:12px;padding:10px 0 0;font-size:11px;letter-spacing:.02em}
+  .brand-details{width:100%;display:flex;justify-content:space-between;align-items:stretch;border-top:1px solid var(--border);margin-top:9px;padding:3px 0 0;font-size:10px;letter-spacing:.02em}
   .brand-details .bd-i{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;position:relative}
   .brand-details .bd-i+.bd-i::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:1em;width:1px;background:var(--border)}
   .brand-details .bd-k{color:#9aa0a8}
@@ -243,6 +300,43 @@
   .brand-details .bd-sic svg{width:14px;height:14px}
   .brand-details .bd-sic:hover{color:var(--accent)}
   .brand-details .bd-link{color:var(--accent);border-bottom:1px dotted currentColor;cursor:pointer;background:none;border-top:0;border-left:0;border-right:0;padding:0;font:inherit}
+  .who-btn{display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;font:inherit;padding:2px 4px;border-radius:9px}
+  .who-btn:hover{background:var(--bg)}
+  .who-logo{width:26px;height:26px;border-radius:7px;object-fit:contain;background:#fff;border:1px solid var(--border)}
+  .acc-head{display:flex;align-items:center;gap:13px;margin-bottom:6px}
+  .acc-logo{width:52px;height:52px;border-radius:12px;background:#fff;border:1px solid var(--border);overflow:hidden;display:grid;place-items:center;font-weight:800;color:var(--accent)}
+  .acc-logo img{width:100%;height:100%;object-fit:contain}
+  .acc-brand{font-size:17px;font-weight:800}
+  .acc-hint{font-size:12px;color:var(--muted);margin-top:2px}
+  .acc-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+  .acc-row:last-child{border-bottom:none}
+  .acc-k{color:var(--muted)} .acc-v{font-weight:600;text-align:right}
+  .acc-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  .acc-chip{background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+  .acc-logo-edit{position:relative;cursor:pointer}
+  .acc-logo-cam{position:absolute;left:0;right:0;bottom:0;background:rgba(16,18,29,.72);color:#fff;font-size:9.5px;font-weight:700;text-align:center;padding:2px 0}
+  .acc-edit{padding:12px 0 4px}
+  .acc-save{padding-top:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .bchip{background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit}
+  .bchip:hover{border-color:#c3cbd4}
+  .bchip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .ir-thumbs{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .ir-thumb{width:52px;height:52px;border-radius:9px;border:1px solid var(--border);background:#fff;overflow:hidden;display:grid;place-items:center;font-size:20px}
+  .ir-thumb img{width:100%;height:100%;object-fit:contain}
+  .mrq-prov{margin-top:8px;font-size:13px;color:var(--muted)}
+  .mrq-prov b{color:var(--text)}
+  .neg-thread{margin-top:8px;border-left:2px solid var(--border);padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:3px}
+  .neg-row{font-size:12.5px;color:var(--muted)}
+  .neg-row .neg-who{font-weight:700;color:var(--text)}
+  .brand-details .bd-more{background:none;border:none;font-family:inherit;font-size:10px;line-height:1;letter-spacing:.02em;color:#9aa0a8;font-weight:400;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#cfd3d9;padding:0}
+  .brand-details .bd-more:hover{color:#727880;text-decoration-color:#9aa0a8}
+  #brandDetailMini .bdp-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+  #brandDetailMini .bdp-row:last-child{border-bottom:none}
+  #brandDetailMini .bdp-k{color:var(--muted)}
+  #brandDetailMini .bdp-v{font-weight:600;text-align:right}
+  #brandDetailMini .bdp-sec{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#b6bcc4;margin:14px 0 2px}
+  #brandDetailMini .bdp-sec:first-child{margin-top:0}
   @media(max-width:640px){.brand-details{flex-wrap:wrap;gap:4px 14px}.brand-details .bd-i{flex:1 1 42%;justify-content:flex-start}.brand-details .bd-i+.bd-i::before{display:none}}
   .cats-wrap{display:flex;align-items:center;gap:4px;width:100%;min-width:0}
   .cats{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;flex:1 1 auto;min-width:0;scrollbar-width:none;scroll-behavior:smooth}
@@ -272,19 +366,24 @@
 </head>
 <body>
 
-<div class="topbar"><div class="wrap">
-  <div class="logo">
-    <img class="logo-img" src="https://cdn.prod.website-files.com/6675b8a846c2cbec25f829cb/6675cb10048c54618b55d8df_Logo_Spreat_SVG_3920px.svg" alt="Spreat">
-    <span class="logo-sub">Brandpool</span>
+<div class="topbar">
+  <div class="tb-top wrap">
+    <div class="logo">
+      <img class="logo-img" src="https://cdn.prod.website-files.com/6675b8a846c2cbec25f829cb/6675cb10048c54618b55d8df_Logo_Spreat_SVG_3920px.svg" alt="Spreat">
+      <span class="logo-sub">Brandpool</span>
+    </div>
+    <div id="acctArea" class="who"></div>
   </div>
-  <nav class="tabs">
-    <button class="tab active" data-tab="profil" onclick="switchTab('profil',this)">Mein Markenprofil</button>
-    <button class="tab" data-tab="karte" onclick="switchTab('karte',this)">Händler-Karte</button>
-    <button class="tab" data-tab="empfehlungen" onclick="switchTab('empfehlungen',this)">Empfehlungen</button>
-    <button class="tab" data-tab="gesuche" onclick="switchTab('gesuche',this)">Bedarf</button>
-  </nav>
-  <div id="acctArea" style="display:flex;align-items:center;gap:10px;margin-left:16px;font-size:13px;white-space:nowrap"></div>
-</div></div>
+  <div class="tb-navrow wrap">
+    <nav class="tabs">
+      <button class="tab active" data-tab="profil" onclick="switchTab('profil',this)">Mein Markenprofil</button>
+      <button class="tab" data-tab="karte" onclick="switchTab('karte',this)">Händler-Karte</button>
+      <button class="tab" data-tab="matching" onclick="switchTab('matching',this)">Chancen</button>
+      <button class="tab tab-req" data-tab="inreq" onclick="switchTab('inreq',this)">Anfragen von Händlern <span class="req-badge" id="inReqBadge" style="display:none"></span></button>
+      <button class="tab tab-req" data-tab="myreq" onclick="switchTab('myreq',this)">Meine Anfragen <span class="req-badge" id="myReqBadge" style="display:none"></span></button>
+    </nav>
+  </div>
+</div>
 
 <div class="wrap pane-wrap">
 
@@ -330,15 +429,39 @@
   </div>
 
   <!-- TAB: Empfehlungen -->
-  <div class="pane" id="pane-empfehlungen">
-    <div class="sec-head"><h2>Händler für dich</h2><span class="hint">Sortiert nach Fit — Branche, Positionierung, Präferenzen, Offenheits-Status.</span></div>
+  <div class="pane" id="pane-matching">
+    <div class="match-intro">
+      <h2>Deine Chancen</h2>
+      <p>Zwei Wege zu neuen Händlern: <b>Empfehlungen</b> sind Läden, die laut Profil zu dir passen — Branche, Positionierung, Präferenzen und Offenheits-Status. <b>Offener Bedarf</b> sind Händler, die gerade aktiv etwas suchen; hier kannst du direkt reagieren, wenn du zum Gesuch passt.</p>
+    </div>
+    <div class="sec-head"><h2>Empfehlungen — Händler für dich</h2><span class="hint">Sortiert nach Fit.</span></div>
     <div class="card" id="recList"></div>
-  </div>
-
-  <!-- TAB: Gesuche -->
-  <div class="pane" id="pane-gesuche">
     <div class="sec-head"><h2>Offener Bedarf</h2><span class="hint">Händler, die gerade aktiv etwas suchen — reagier direkt.</span></div>
     <div class="seek-grid" id="seekGrid"></div>
+  </div>
+
+  <!-- TAB: Anfragen von Händlern -->
+  <div class="pane" id="pane-inreq">
+    <div class="sec-head"><h2>Anfragen von Händlern</h2><span class="hint">Läden, die deine Produkte in ihr Sortiment nehmen möchten.</span></div>
+    <div class="myreq-tabs">
+      <button class="myreq-tab active" id="irqAll" onclick="setInReqFilter('alle',this)">Alle</button>
+      <button class="myreq-tab" id="irqNew" onclick="setInReqFilter('neu',this)">Neu</button>
+      <button class="myreq-tab" id="irqAcc" onclick="setInReqFilter('angenommen',this)">Angenommen</button>
+      <button class="myreq-tab" id="irqDec" onclick="setInReqFilter('abgelehnt',this)">Abgelehnt</button>
+    </div>
+    <div id="inReqList"></div>
+  </div>
+
+  <!-- TAB: Meine Anfragen -->
+  <div class="pane" id="pane-myreq">
+    <div class="sec-head"><h2>Meine Anfragen</h2><span class="hint">Anfragen, die du an Händler gesendet hast.</span></div>
+    <div class="myreq-tabs">
+      <button class="myreq-tab active" id="mrqAll" onclick="setMyReqFilter('alle',this)">Alle</button>
+      <button class="myreq-tab" id="mrqPending" onclick="setMyReqFilter('pending',this)">Offen</button>
+      <button class="myreq-tab" id="mrqAcc" onclick="setMyReqFilter('angenommen',this)">Angenommen</button>
+      <button class="myreq-tab" id="mrqDec" onclick="setMyReqFilter('abgelehnt',this)">Abgelehnt</button>
+    </div>
+    <div id="myReqList"></div>
   </div>
 </div>
 
@@ -416,10 +539,71 @@
 </div>
 
 <!-- Detailfeld-Edit -->
+<div class="mini" id="brandDetailMini">
+  <div class="mini-head"><h3 id="bdmTitle">Markendetails</h3><button class="x" onclick="closeMini('brandDetailMini')">✕</button></div>
+  <div class="mini-body" id="bdmBody"></div>
+  <div class="mini-foot"><button class="btn btn-primary" style="flex:1" onclick="closeMini('brandDetailMini')">Schließen</button></div>
+</div>
+
 <div class="mini" id="fieldModal">
   <div class="mini-head"><h3 id="fmTitle">Feld bearbeiten</h3><button class="x" onclick="closeMini('fieldModal')">✕</button></div>
   <div class="mini-body" id="fmBody"></div>
   <div class="mini-foot"><button class="btn" onclick="closeMini('fieldModal')">Abbrechen</button><button class="btn btn-primary" onclick="saveField()">Speichern</button></div>
+</div>
+
+<!-- Anfrage-Composer (Marke -> Händler) -->
+<div class="mini" id="reqModal" style="width:min(860px,96vw)">
+  <div class="mini-head"><h3 id="reqTitle">Anfrage an Händler</h3><button class="x" onclick="closeMini('reqModal')">✕</button></div>
+  <div class="mini-body">
+    <div class="req-quota" id="reqQuota"></div>
+    <div class="req-sec">
+      <div class="req-sec-t">1 · Welche Produkte möchtest du hier platzieren? <span class="rq">*</span></div>
+      <div class="req-sec-h">Wähl aus deinem Sortiment — nach Kategorien oder per Suche. <b id="reqSelCount">0 ausgewählt</b></div>
+      <div class="req-selbar" id="reqSelBar" style="display:none"></div>
+      <input id="reqSearch" placeholder="Produkt suchen …" oninput="renderReqGrid()" style="margin:4px 0 8px">
+      <div id="reqPills" class="req-pills"></div>
+      <div id="reqGrid" class="req-grid"></div>
+    </div>
+    <div class="req-sec">
+      <div class="req-sec-t">2 · Wen ziehst du damit an? <span class="rq">*</span> <span class="info-i" title="Beschreibe die Kundschaft, die deine Produkte kaufen — Alter, Anlass, Typ. So sieht der Händler sofort, ob das zu seinem Publikum passt.">i</span></div>
+      <div class="req-sec-h">Deine Zielgruppe / Wunschkundschaft — für wen sind die Produkte gemacht?</div>
+      <textarea id="reqZielgruppe" placeholder="z. B. Fußball-Fans & Familien zur EM/WM, 20–55, die spontan Fanartikel und Partydeko mitnehmen." style="min-height:72px"></textarea>
+    </div>
+    <div class="req-sec">
+      <div class="req-sec-t">3 · Persönliche Nachricht <span class="opt">(optional)</span></div>
+      <textarea id="reqMsg" placeholder="Mooin! Wir würden gern bei dir starten, weil …" style="min-height:70px"></textarea>
+    </div>
+    <div class="form-err" id="reqErr" style="display:none"></div>
+  </div>
+  <div class="mini-foot">
+    <button class="btn" onclick="closeMini('reqModal')">Abbrechen</button>
+    <button class="btn btn-primary" id="reqSendBtn" onclick="submitRequest()">Anfrage senden</button>
+  </div>
+</div>
+
+<!-- Marken-Account (Stammdaten aus der Registrierung) -->
+<div class="mini" id="acctModal" style="width:min(520px,95vw)">
+  <div class="mini-head"><h3>Dein Marken-Account</h3><button class="x" onclick="closeMini('acctModal')">✕</button></div>
+  <div class="mini-body" id="acctBody"></div>
+  <div class="mini-foot"><button class="btn btn-primary" style="flex:1" onclick="closeMini('acctModal')">Schließen</button></div>
+</div>
+
+<!-- Verhandlungs-Popup (Gegenvorschlag / Ablehnen) -->
+<div class="mini" id="negModal" style="width:min(440px,94vw)">
+  <div class="mini-head"><h3 id="negTitle">Gegenvorschlag</h3><button class="x" onclick="closeMini('negModal')">✕</button></div>
+  <div class="mini-body">
+    <div id="negProvWrap" class="field">
+      <label>Deine Provision an den Händler (%)</label>
+      <input type="number" id="negProv" min="0" max="100" step="1" style="width:120px">
+      <div class="hint" id="negProvHint" style="font-size:12px;color:var(--muted);margin-top:5px"></div>
+    </div>
+    <div class="field"><label id="negMsgLabel">Kurze Nachricht <span class="opt">(optional)</span></label>
+      <textarea id="negMsg" style="min-height:70px" placeholder="z. B. Zu diesem Satz können wir gern starten."></textarea></div>
+  </div>
+  <div class="mini-foot">
+    <button class="btn" onclick="closeMini('negModal')">Abbrechen</button>
+    <button class="btn btn-primary" id="negSubmit" onclick="submitNeg()">Senden</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -505,10 +689,12 @@ const retailers = [
   {name:'Schwarzwald Laden', city:'Freiburg', lat:47.999, lng:7.842, stores:1, area:60, branch:'Regionales', pricing:'Premium', volume:'klein', volVerified:false, noGos:['Import'], prefs:['Regional','Bio'], status:'geschlossen', verified:false, seeking:[]},
   {name:'Marktstube Neckar', city:'Stuttgart', lat:48.775, lng:9.182, stores:1, area:100, branch:'Feinkost', pricing:'Premium', volume:'20.000–50.000 €', volVerified:false, noGos:[], prefs:['Regional','Genuss'], status:'offen', verified:false, seeking:['Winter-/Glühwein-Sortiment']},
   {name:'Elbe & Co', city:'Hannover', lat:52.375, lng:9.732, stores:1, area:95, branch:'Concept Store', pricing:'Premium', volume:'20.000–50.000 €', volVerified:true, noGos:['Tabak'], prefs:['Design','Genuss'], status:'geschlossen', verified:true, seeking:[]},
-  {name:'Ruhr Feinkost', city:'Dortmund', lat:51.514, lng:7.466, stores:2, area:200, branch:'Feinkost', pricing:'Masse', volume:'50.000–100.000 €', volVerified:false, noGos:[], prefs:['Genuss','Alltag'], status:'offen', verified:false, seeking:[]},
+  {name:'Ruhr Feinkost', city:'Dortmund', lat:51.514, lng:7.466, stores:2, area:200, branch:'Feinkost', pricing:'Solide Mitte', volume:'50.000–100.000 €', volVerified:false, noGos:[], prefs:['Genuss','Alltag'], status:'offen', verified:false, seeking:[]},
   // freenet = Verbund: EIN Händlerprofil, aber alle Standorte als Pins (locations.json).
   // Anfrage nur an den Verbund als Ganzes — einzelne Filialen sind nicht anfragbar.
-  {name:'freenet', city:'deutschlandweit', lat:51.16, lng:10.45, stores:419, area:70, branch:'Telekommunikation & Zubehör', pricing:'Preisbewusst, Solide Mitte', volume:'über 100.000 €', volVerified:false, noGos:[], prefs:['Technik','Zubehör','Alltag'], status:'offen', verified:true, seeking:[], verbund:true}
+  {name:'freenet', city:'deutschlandweit', lat:51.16, lng:10.45, stores:419, area:70, branch:'Telekommunikation & Zubehör', pricing:'Preisbewusst, Solide Mitte', volume:'über 100.000 €', volVerified:false, noGos:[], prefs:['Technik','Zubehör','Alltag'], status:'offen', verified:true, seeking:[], verbund:true},
+  // Geteilter Demo-Laden (echte DB-Anbindung) — blauer Pin, echte Anfrage möglich
+  {name:'Spreat Demo-Laden', city:'Meppen', lat:52.6905, lng:7.2913, stores:2, area:120, branch:'Feinkostladen', pricing:'Gehoben', volume:'20.000–50.000 €', volVerified:true, noGos:['Tabak'], prefs:['Regional','Genuss','Nachhaltig'], status:'offen', verified:true, seeking:['Regionale Spezialitäten für die Vorweihnachtszeit'], demoReal:true, rid:'7a1cb0da-66a4-443b-81ea-50a9007d37a7'}
 ];
 /* freenet-Standorte — eingebettet (Quelle: spreat.rapto-sports.com/locations.json, Stand 2026-07-21).
    Eingebettet statt fetch, damit die Pins auch bei file:// / offline erscheinen (CORS). [lat,lon] */
@@ -534,7 +720,24 @@ function switchTab(id,el){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('pane-'+id).classList.add('active');
   if(id==='karte'){ initMap(); setTimeout(()=>{ if(window._map) _map.invalidateSize(); },60); }
+  if(id==='inreq'){
+    document.getElementById('inReqList').innerHTML='<div class="rcard-empty" style="padding:30px">Lädt …</div>';
+    loadInReq().then(()=>{ inReqFilter='alle';
+      ['irqAll','irqNew','irqAcc','irqDec'].forEach(x=>document.getElementById(x).classList.remove('active'));
+      document.getElementById('irqAll').classList.add('active');
+      renderInReq(); inReqBadgeUpdate(); });
+  }
+  if(id==='myreq'){
+    myReqSeen=true; myReqFilter='alle';
+    ['mrqAll','mrqPending','mrqAcc','mrqDec'].forEach(x=>document.getElementById(x).classList.remove('active'));
+    document.getElementById('mrqAll').classList.add('active');
+    document.getElementById('myReqList').innerHTML='<div class="rcard-empty" style="padding:30px">Lädt …</div>';
+    loadMyReqAll().then(()=>{ renderMyReq(); updateMyReqBadge(); });
+  }
 }
+/* Rückwärtskompatibel: alte Öffner zeigen jetzt den Tab */
+function openInReq(){ const t=document.querySelector('[data-tab="inreq"]'); if(t) switchTab('inreq',t); }
+function openMyReq(){ const t=document.querySelector('[data-tab="myreq"]'); if(t) switchTab('myreq',t); }
 
 /* ============ Profil ============ */
 function socIcon(k){return {instagram:'📸',tiktok:'🎵',facebook:'f',linkedin:'in'}[k]||'·';}
@@ -612,15 +815,23 @@ function checklist(){
     ['Aufsteller / Display', !!brand.display]
   ];
 }
+function completeDismissKey(){ return 'spreat20_complete_dismissed_' + ((brand && brand.name) || 'marke'); }
+function dismissComplete(){
+  try{ localStorage.setItem(completeDismissKey(),'1'); }catch(e){}
+  document.getElementById('completeBox').innerHTML='';
+}
 function renderComplete(){
+  const box=document.getElementById('completeBox');
+  let dismissed=false; try{ dismissed = localStorage.getItem(completeDismissKey())==='1'; }catch(e){}
+  if(dismissed){ box.innerHTML=''; return; }
   const cl=checklist(); const done=cl.filter(x=>x[1]).length; const pct=Math.round(done/cl.length*100);
   const missing=cl.filter(x=>!x[1]).map(x=>x[0]);
-  const box=document.getElementById('completeBox');
   if(!missing.length){ box.innerHTML=''; return; }
   box.innerHTML=`<div class="complete">
     <div class="cbar"><i style="width:${pct}%"></i></div>
     <div class="ctxt">Dein Profil ist zu <b>${pct}%</b> vollständig. Es fehlt noch: <b>${missing.map(esc).join(', ')}</b>. Ein vollständiges Profil wird von Händlern deutlich häufiger bestätigt.</div>
     <button class="btn btn-primary" onclick="openPool('edit','bestseller')">Profil vervollständigen</button>
+    <button class="cbox-x" title="Ausblenden" aria-label="Ausblenden" onclick="dismissComplete()">✕</button>
   </div>`;
 }
 function renderPoolPreview(){
@@ -679,8 +890,9 @@ function renderPool(){
     renderDetailRow('pmDetailRow');
     renderCatman();
   } else {
+    const _descTxt = (brand.beschreibung && brand.beschreibung.trim()) ? brand.beschreibung : (brand.kurz||'');
     document.getElementById('pmDesc').innerHTML =
-      `<span class="desc-clamp" id="pmDescText">${descHtml(brand.beschreibung)}</span> `+
+      `<span class="desc-clamp" id="pmDescText">${descHtml(_descTxt)}</span> `+
       `<button class="desc-more" id="pmDescMore" onclick="toggleDesc()" style="display:none">mehr</button>`;
     document.getElementById('pmMeta').innerHTML=
       `<span class="meta-chip">Ø Laden-Provision <b>${brand.defaultMargin} %</b></span>`+
@@ -723,12 +935,14 @@ function renderBrandDetailsPreview(target){
   const socHtml=socs.map(s=>`<a class="bd-sic" href="${esc(socialUrl(s[0],s[1]))}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${esc(s[0]+': '+s[1])}">${SOC_SVG[s[0]]}</a>`).join('');
   const kan=(brand.bereits_gelistet||'').split(',').map(x=>x.trim()).filter(Boolean);
   const gel=kan.length?`<button class="bd-link" onclick="openGelistet()">${kan.length} ${kan.length===1?'Kanal':'Kanälen'}</button>`:'';
+  const moreHtml='<button type="button" class="bd-more" onclick="event.stopPropagation();openMarkeDetails()">Mehr anzeigen</button>';
   const cells=[
     ['Gegründet', brand.gruendungsjahr, false],
     ['Social', socHtml, true],
     ['Barcode / EAN', brand.ean, false],
     ['Eurolochung', brand.eurolochung, false],
-    ['Gelistet in', gel, true]
+    ['Gelistet in', gel, true],
+    ['', moreHtml, true]
   ];
   document.getElementById(target).innerHTML=`<div class="brand-details">`+cells.map(c=>{
     let inner;
@@ -905,8 +1119,32 @@ function saveField(){ const def=FIELD_DEF[fieldKey]; if(def){ def.save(); } clos
 function closeMini(id){
   document.getElementById(id).classList.remove('open');
   const anyPool=document.getElementById('poolModal').classList.contains('open');
-  const anyMini=['prodModal','descModal','fieldModal'].some(m=>document.getElementById(m).classList.contains('open'));
+  const anyMini=['prodModal','descModal','fieldModal','reqModal','brandDetailMini','negModal','acctModal'].some(m=>document.getElementById(m).classList.contains('open'));
   if(!anyPool && !anyMini) document.getElementById('overlay').classList.remove('open');
+}
+function openMarkeDetails(){
+  const row=(k,v)=> (v!=null && String(v).trim()!=='')
+    ? `<div class="bdp-row"><span class="bdp-k">${esc(k)}</span><span class="bdp-v">${v}</span></div>` : '';
+  const socs=[['instagram',brand.instagram],['facebook',brand.facebook],['tiktok',brand.tiktok],['linkedin',brand.linkedin]].filter(s=>s[1]&&String(s[1]).trim());
+  const socHtml=socs.map(s=>`<a href="${esc(socialUrl(s[0],s[1]))}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">${esc(s[0].charAt(0).toUpperCase()+s[0].slice(1))}</a>`).join(' · ');
+  let html='<div class="bdp-sec">Stammdaten</div>';
+  html+=row('Gegründet', esc(brand.gruendungsjahr));
+  html+= socHtml?row('Social', socHtml):'';
+  html+=row('Barcode / EAN', esc(brand.ean));
+  html+=row('Eurolochung', esc(brand.eurolochung));
+  html+= (brand.bereits_gelistet||'').trim()?row('Gelistet in', esc(brand.bereits_gelistet)):'';
+  if([brand.jahresumsatz,brand.werbebudget,brand.display].some(x=>x&&String(x).trim())){
+    html+='<div class="bdp-sec">Für Händler zur Einordnung</div>';
+    html+=row('Jahresumsatz', esc(brand.jahresumsatz));
+    html+=row('Werbebudget', esc(brand.werbebudget));
+    let disp=brand.display?esc(brand.display):'';
+    if(disp && brand.displayNote && String(brand.displayNote).trim()) disp+=` <span style="color:var(--muted);font-weight:400">(${esc(brand.displayNote)})</span>`;
+    html+= disp?row('Aufsteller / Display', disp):'';
+  }
+  document.getElementById('bdmTitle').textContent=(brand.name||'Marke')+' — Markendetails';
+  document.getElementById('bdmBody').innerHTML=html || '<div style="color:var(--muted);font-size:13.5px;padding:8px 0">Noch keine weiteren Angaben.</div>';
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('brandDetailMini').classList.add('open');
 }
 function syncAll(){ renderProfile(); renderPoolPreview(); if(document.getElementById('poolModal').classList.contains('open')) renderPool(); }
 
@@ -934,7 +1172,9 @@ function renderMap(){
       });
       return;
     }
-    const icon=L.divIcon({className:'',html:`<div class="rmarker" style="background:${STATUS_COLOR[r.status]}"></div>`,iconSize:[18,18],iconAnchor:[9,9]});
+    const col=r.demoReal?'#2563eb':STATUS_COLOR[r.status];
+    const extra=r.demoReal?'width:22px;height:22px;box-shadow:0 0 0 5px rgba(37,99,235,.25),0 1px 4px rgba(0,0,0,.35)':'';
+    const icon=L.divIcon({className:'',html:`<div class="rmarker" style="background:${col};${extra}"></div>`,iconSize:[18,18],iconAnchor:[9,9]});
     const m=L.marker([r.lat,r.lng],{icon}).addTo(_map); m.on('click',()=>selectRetailer(i)); window._markers.push(m);
   });
 }
@@ -950,10 +1190,394 @@ function selectRetailer(i){
     <div class="rrow"><span class="k">No-Gos</span><span>${r.noGos.length?r.noGos.map(n=>`<span class="chip-nogo">${esc(n)}</span>`).join(''):'<span style="color:var(--muted)">keine</span>'}</span></div>
     <div class="rrow"><span class="k">Präferenzen</span><span>${r.prefs.map(p=>`<span class="chip-pref">${esc(p)}</span>`).join('')}</span></div>
     ${r.seeking.length?`<div class="rrow"><span class="k">Sucht gerade</span><b>${r.seeking.map(esc).join(', ')}</b></div>`:''}
-    ${r.verbund?`<div class="rrow" style="color:var(--muted);font-size:13px">Verbund: Alle ${r.stores} Standorte treten als eine Einheit auf. Deine Anfrage geht an die Zentrale und zählt als eine Anfrage — einzelne Filialen sind nicht separat anfragbar.</div>`:''}
     <button class="btn btn-primary" style="width:100%;margin-top:16px" ${closed?'disabled':''} onclick="sendRequest(${i})">${closed?'🔴 Zurzeit geschlossen — keine Anfrage möglich':'Anfrage senden'}</button>`;
 }
-function sendRequest(i){ if(quota<=0){toast('Kontingent aufgebraucht');return;} const r=retailers[i]; quota--; const q=document.getElementById('quota'); if(q)q.textContent=quota; toast('Anfrage an '+r.name+' gesendet — '+quota+'/10 übrig'); const b=document.querySelector('#rcard .btn-primary'); if(b){b.disabled=true;b.textContent='✓ Anfrage gesendet';} }
+/* ============ Anfrage-Composer (Masterplan §02/§06) ============ */
+let reqRetailer=null, reqSel=new Set(), reqCat='Alle';
+function sendRequest(i){
+  const r=retailers[i];
+  if(r.status==='geschlossen'){ toast('Dieser Händler nimmt aktuell keine Anfragen an'); return; }
+  if(quota<=0){ toast('Kontingent aufgebraucht — diesen Monat keine Anfragen mehr'); return; }
+  reqRetailer=i; reqSel=new Set(); reqCat='Alle';
+  document.getElementById('reqTitle').textContent='Anfrage an '+r.name;
+  document.getElementById('reqQuota').innerHTML='Noch <b>'+quota+' von 10</b> Anfragen diesen Monat — jede zählt, deshalb zielt jede.';
+  document.getElementById('reqZielgruppe').value='';
+  document.getElementById('reqMsg').value='';
+  document.getElementById('reqSearch').value='';
+  document.getElementById('reqErr').style.display='none';
+  document.getElementById('reqSendBtn').disabled=false;
+  document.getElementById('reqSendBtn').textContent='Anfrage senden ('+quota+'/10)';
+  renderReqPills(); renderReqGrid(); renderReqSel();
+  document.getElementById('reqModal').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function renderReqPills(){
+  const cats=['Alle','Top Seller',...categories.map(c=>c.name)];
+  document.getElementById('reqPills').innerHTML=cats.map(c=>{
+    const label=c==='Top Seller'?'★ Top Seller':esc(c);
+    return `<button class="cat-pill${reqCat===c?' active':''}" onclick="setReqCat('${c.replace(/'/g,"\\'")}')">${label}</button>`;
+  }).join('');
+}
+function setReqCat(c){ reqCat=c; renderReqPills(); renderReqGrid(); }
+function reqFiltered(){
+  const q=(document.getElementById('reqSearch').value||'').toLowerCase();
+  let ps=products.slice();
+  if(reqCat==='Top Seller') ps=ps.filter(p=>p.featured);
+  else if(reqCat!=='Alle') ps=ps.filter(p=>p.kat===reqCat);
+  if(q) ps=ps.filter(p=>p.name.toLowerCase().includes(q));
+  return ps;
+}
+function renderReqGrid(){
+  const ps=reqFiltered();
+  const grid=document.getElementById('reqGrid');
+  if(!ps.length){ grid.innerHTML='<div class="rcard-empty" style="grid-column:1/-1;padding:24px">Keine Produkte gefunden.</div>'; return; }
+  grid.innerHTML=ps.map(p=>{
+    const thumb=p.img?`<img src="${esc(p.img)}" onerror="this.style.display='none';this.parentNode.insertAdjacentText('afterbegin','📦')">`:'📦';
+    return `<div class="req-pcard${reqSel.has(p.id)?' sel':''}" onclick="toggleReqProd(${p.id})">
+      <div class="rpc-thumb">${p.featured?'<span class="rpc-star">★</span>':''}${thumb}<span class="rpc-check">✓</span></div>
+      <div class="rpc-info"><div class="rpc-name">${esc(p.name)}</div><div class="rpc-price">${eur(p.uvp)}</div></div>
+    </div>`;
+  }).join('');
+}
+function toggleReqProd(id){ if(reqSel.has(id))reqSel.delete(id); else reqSel.add(id); renderReqGrid(); renderReqSel(); }
+function renderReqSel(){
+  const bar=document.getElementById('reqSelBar'), cnt=document.getElementById('reqSelCount');
+  cnt.textContent=reqSel.size+' ausgewählt';
+  if(!reqSel.size){ bar.style.display='none'; bar.innerHTML=''; return; }
+  bar.style.display='';
+  bar.innerHTML=[...reqSel].map(id=>{ const p=products.find(x=>x.id===id); if(!p)return'';
+    return `<span class="req-selchip">${esc(p.name)} <b onclick="event.stopPropagation();toggleReqProd(${id})">✕</b></span>`; }).join('');
+}
+async function submitRequest(){
+  const err=document.getElementById('reqErr');
+  if(!reqSel.size){ err.textContent='Bitte mindestens ein Produkt wählen, das du platzieren möchtest.'; err.style.display=''; return; }
+  if(!document.getElementById('reqZielgruppe').value.trim()){ err.textContent='Bitte kurz beschreiben, welche Kundschaft deine Produkte ansprechen.'; err.style.display=''; return; }
+  err.style.display='none';
+  const r=retailers[reqRetailer];
+  const zg=document.getElementById('reqZielgruppe').value.trim();
+  const msg=document.getElementById('reqMsg').value.trim();
+  const prov=Math.round(brand.defaultMargin||20);
+  // Demo-Laden = ECHTE Anfrage in die DB (Marke -> Händler)
+  if(r.demoReal && !(typeof STANDALONE!=='undefined' && STANDALONE) && dbBrand){
+    const btn=document.querySelector('#reqModal .btn-primary'); if(btn){btn.disabled=true;btn.textContent='Wird gesendet …';}
+    const {data:br,error}=await sbm.from('brand_requests').insert({
+      marken_id:dbBrand.marken_id, retailer_id:r.rid,
+      nachricht: (zg?('Zielgruppe: '+zg+'. '):'')+msg, provision:prov, wer_dran:'haendler', status:'neu',
+      verlauf:[{von:'marke',provision:prov,text:'Anfrage',ts:new Date().toISOString()}]
+    }).select('id').single();
+    if(error||!br){ if(btn){btn.disabled=false;btn.textContent='Anfrage senden';} err.textContent='Konnte nicht senden: '+(error&&error.message||''); err.style.display=''; return; }
+    const items=[...reqSel].map(id=>{const p=products.find(x=>x.id===id);return p?{brand_request_id:br.id,produkt_id:p.dbId,menge_pro_monat:20}:null;}).filter(Boolean);
+    if(items.length) await sbm.from('brand_request_items').insert(items);
+    if(btn){btn.disabled=false;btn.textContent='Anfrage senden';}
+    closeMini('reqModal');
+    toast('Echte Anfrage an den Demo-Laden gesendet — der Händler sieht sie jetzt in „Anfragen von Marken".');
+    const b=document.querySelector('#rcard .btn-primary'); if(b){ b.disabled=true; b.textContent='Anfrage gesendet'; }
+    return;
+  }
+  // sonst: Demo (in-memory)
+  const names=[...reqSel].map(id=>{const p=products.find(x=>x.id===id);return p?p.name:'';}).filter(Boolean);
+  quota--; const q=document.getElementById('quota'); if(q)q.textContent=quota;
+  myRequests.unshift({ ret:r.name, city:r.city, date:'heute', status:'pending', prods:names, zg, msg });
+  myReqSeen=false; updateMyReqBadge();
+  closeMini('reqModal');
+  toast('Anfrage an '+r.name+' gesendet — noch '+quota+'/10 diesen Monat');
+  const b=document.querySelector('#rcard .btn-primary');
+  if(b){ b.disabled=true; b.textContent='Anfrage gesendet'; }
+}
+
+/* ============ Eingehende Anfragen von Händlern (echte DB via request_brands) ============ */
+let inReqs=null, inReqFilter='alle';
+function seedInReqDemo(){
+  if(!products.length) return [];
+  const R=(typeof retailers!=='undefined'?retailers:[]);
+  const pick=(idxs,m)=>idxs.map(i=>products[i]).filter(Boolean).map(p=>({name:p.name,img:p.img,menge:m}));
+  const retCard=r=>({ansprechpartner_name:r.name, adresse:r.city, branche:r.branch,
+    handelsvolumen:r.volume, anzahl_filialen:r.stores, verkaufsflaeche_qm:r.area,
+    preis_positionierung:r.pricing, verified:r.verified,
+    email:'einkauf@'+String(r.name||'laden').toLowerCase().replace(/[^a-z0-9]+/g,'')+'.de', telefon:''});
+  const def=Math.round(brand.defaultMargin||20);
+  const demoLaden={name:'Spreat Demo-Laden',city:'Meppen',branch:'Feinkostladen',stores:2,area:120,volume:'20.000–50.000 €',pricing:'Gehoben',verified:true};
+  const mk=(n,r,items,prov,wer,status,date,msg,extra)=>({id:'demo-'+n,typ:'anfrage',status,wer_dran:wer,provision:prov,date,
+    nachricht:msg, ret:retCard(r), items,
+    verlauf:[{von:'haendler',provision:def,text:'Erstanfrage'}].concat(extra||[])});
+  const out=[];
+  // 5 offene "neu" (du bist dran) — inkl. Spreat Demo-Laden
+  out.push(mk(1, demoLaden, pick([0,1,2],20), def,'marke','neu','vor 1 Tag','Wir würden eure Fanartikel gern zur EM listen — passt super zu unserem Standort in der Innenstadt.'));
+  if(R[0]) out.push(mk(2, R[0], pick([3,4],15), def,'marke','neu','vor 2 Tagen','Sehr interessant für unser Sortiment — können wir mit einer Erstbestellung starten?'));
+  if(R[2]) out.push(mk(3, R[2], pick([1,5],25), def,'marke','neu','vor 3 Tagen','Wir suchen genau sowas für die Kassenzone. Bitte um ein Angebot.'));
+  if(R[4]) out.push(mk(4, R[4], pick([0,6],10), def,'marke','neu','vor 4 Tagen','Passt zu unserer Zielgruppe, würden gern mit einer kleinen Menge testen.'));
+  if(R[5]) out.push(mk(5, R[5], pick([2,7],20), def,'marke','neu','vor 5 Tagen','Angebot für 2 Filialen wäre super — wir haben viel Laufkundschaft.'));
+  // + je eine im Verhandlungs- und im angenommenen Zustand
+  if(R[3]) out.push(mk(6, R[3], pick([0,3],15), Math.max(0,def-5),'haendler','neu','vor 6 Tagen','Interessiert — allerdings bräuchten wir etwas mehr Marge.',[{von:'marke',provision:Math.max(0,def-5),text:'Gegenvorschlag'}]));
+  if(R[8]) out.push(mk(7, R[8], pick([1,4],25), def,'','angenommen','letzte Woche','Top, wir nehmen euch ins Sortiment!',[{von:'marke',provision:def,text:'Angenommen'}]));
+  return out;
+}
+async function loadInReq(){
+  let real=[];
+  if(!(typeof STANDALONE!=='undefined' && STANDALONE) && !(typeof dbBrand==='undefined' || !dbBrand)){
+  const {data,error}=await sbm.from('request_brands')
+    .select('id,marken_id,status,created_at,typ,provision,wer_dran,verlauf,requests(id,nachricht,created_at,retailer_id,retailers(ansprechpartner_name,adresse,branche,handelsvolumen,anzahl_filialen,verkaufsflaeche_qm,preis_positionierung,offenheits_status,verified,email,telefon),request_items(produkt_id,menge_pro_monat))')
+    .eq('marken_id', dbBrand.marken_id)   // STRIKT nur eigene Marke (Konto kann auch Händler sein!)
+    .order('created_at',{ascending:false});
+  if(error){ console.error('loadInReq',error); }
+  else real=(data||[]).map(rb=>{
+    const r=rb.requests||{}; const ret=r.retailers||{};
+    // Nur EIGENE Produkte anzeigen (Anfrage kann Produkte mehrerer Marken enthalten)
+    const items=(r.request_items||[])
+      .map(it=>{ const p=products.find(x=>x.dbId===it.produkt_id); return p?{name:p.name,img:p.img,menge:it.menge_pro_monat}:null; })
+      .filter(Boolean);
+    return {id:rb.id, status:rb.status, typ:rb.typ||'anfrage',
+      provision:rb.provision, wer_dran:rb.wer_dran||'', verlauf:Array.isArray(rb.verlauf)?rb.verlauf:[],
+      date:r.created_at?new Date(r.created_at).toLocaleDateString('de-DE'):'',
+      nachricht:r.nachricht||'', ret, items};
+  }).filter(r=>r.items.length);   // Karten ohne eigene Produkte raus
+  }
+  // Demo-Anfragen (bis echte Einzelhändler eingepflegt sind) — kohärent aus eigenen Produkten
+  inReqs = real.concat(seedInReqDemo());
+}
+function inReqBadgeUpdate(){
+  const n=(inReqs||[]).filter(r=>r.status==='neu' && r.wer_dran==='marke').length;
+  const b=document.getElementById('inReqBadge'); if(b){ b.style.display=n?'':'none'; b.textContent=n; }
+}
+function setInReqFilter(f,el){ inReqFilter=f; document.querySelectorAll('#pane-inreq .myreq-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); renderInReq(); }
+const IRQ_LABEL={neu:'Neu',angenommen:'Angenommen',abgelehnt:'Abgelehnt'};
+function renderInReq(){
+  const list=(inReqs||[]).filter(r=>inReqFilter==='alle'||r.status===inReqFilter);
+  const el=document.getElementById('inReqList');
+  if(!list.length){ el.innerHTML='<div class="rcard-empty" style="padding:30px">Keine Anfragen in dieser Ansicht.</div>'; return; }
+  el.innerHTML=list.map(r=>{
+    const ret=r.ret||{}; const city=(ret.adresse||'').split(',').slice(-1)[0].trim();
+    const prods=r.items.map(i=>esc(i.name)+(i.menge?` <span style="color:var(--muted)">(${i.menge}/Monat)</span>`:'')).join(', ');
+    const facts=[ret.handelsvolumen?'Volumen '+esc(ret.handelsvolumen):'', ret.verkaufsflaeche_qm?esc(ret.verkaufsflaeche_qm)+' m²':'', ret.anzahl_filialen?esc(ret.anzahl_filialen)+' Filiale(n)':'', ret.preis_positionierung?esc(ret.preis_positionierung):''].filter(Boolean).join(' · ');
+    return `<div class="mrq-item">
+      <div class="mrq-top">
+        <span class="mrq-name">${esc(ret.ansprechpartner_name||'Händler')}</span>
+        <span style="font-size:12.5px;color:var(--muted)">${esc(ret.branche||'')}${city?' · '+esc(city):''}${ret.verified?' · ✓ verifiziert':''}</span>
+        <span class="mrq-date">${esc(r.date)}</span>
+      </div>
+      <div style="margin-top:6px"><span class="mrq-st ${r.status==='neu'?'pending':r.status}">${r.status==='neu'?(r.wer_dran==='haendler'?'Warte auf Händler':'Neu'):(IRQ_LABEL[r.status]||r.status)}</span></div>
+      <div class="ir-thumbs">${r.items.slice(0,6).map(i=>`<div class="ir-thumb" title="${esc(i.name)}">${i.img?`<img src="${esc(i.img)}" alt="" loading="lazy">`:'📦'}</div>`).join('')}</div>
+      <div class="mrq-meta"><b>${r.items.length} Produkt${r.items.length===1?'':'e'}:</b> ${prods||'—'}</div>
+      ${facts?`<div class="mrq-meta">${facts}</div>`:''}
+      ${r.nachricht?`<div class="mrq-contact" style="background:var(--bg);border-color:var(--border);color:var(--text)">„${esc(r.nachricht)}"</div>`:''}
+      <div class="mrq-prov">Aktuell auf dem Tisch: <b>${r.provision!=null?esc(r.provision)+' % Provision':'—'}</b>${r.provision!=null&&effMargin&&r.items[0]?'':''}</div>
+      ${negThread(r.verlauf)}
+      ${r.status==='neu' && r.wer_dran==='marke' ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="decideInReq('${r.id}','angenommen')">Zu ${esc(r.provision)} % annehmen</button>
+        <button class="btn" onclick="openNegModal('${r.id}','counter')">Gegenvorschlag</button>
+        <button class="btn" onclick="openNegModal('${r.id}','decline')">Ablehnen</button></div>` : ''}
+      ${r.status==='neu' && r.wer_dran==='haendler' ? `<div class="mrq-meta" style="color:var(--muted);margin-top:8px">Dein Gegenvorschlag (${esc(r.provision)} %) liegt beim Händler.</div>`:''}
+      ${r.status==='angenommen'?`<div class="mrq-contact">Angenommen zu <b>${esc(r.provision)} %</b> — Kontakt zum Händler: <b>${esc(ret.email||'—')}</b>${ret.telefon?' · '+esc(ret.telefon):''}</div>`:''}
+      ${r.status==='abgelehnt'?`<div class="mrq-meta" style="color:#b0656a">Abgelehnt.</div>`:''}
+    </div>`;
+  }).join('');
+}
+function negThread(v){
+  if(!Array.isArray(v)||v.length<2) return '';
+  return '<div class="neg-thread">'+v.map(e=>{
+    const who=e.von==='marke'?'Du':'Händler';
+    const t=(e.text&&e.text!=='Erstanfrage')?' — '+esc(e.text):'';
+    return `<div class="neg-row"><span class="neg-who">${who}</span> ${e.provision!=null?esc(e.provision)+' %':''}${t}</div>`;
+  }).join('')+'</div>';
+}
+async function decideInReq(id,status,reason){
+  const r=(inReqs||[]).find(x=>x.id===id); if(!r) return;
+  const txt = status==='angenommen' ? 'Angenommen' : ('Abgelehnt'+(reason?': '+reason:''));
+  const verlauf=(r.verlauf||[]).concat([{von:'marke',provision:r.provision,text:txt,ts:new Date().toISOString()}]);
+  if(!String(id).startsWith('demo-')){
+    const {error}=await sbm.from('request_brands').update({status, wer_dran:'', verlauf}).eq('id',id);
+    if(error){ console.error('decideInReq',error); toast('Konnte Status nicht speichern'); return; }
+  }
+  r.status=status; r.wer_dran=''; r.verlauf=verlauf;
+  renderInReq(); inReqBadgeUpdate();
+  toast(status==='angenommen'?'Angenommen — Kontakt freigegeben':'Abgelehnt');
+}
+async function applyCounter(id,val,text){
+  const r=(inReqs||[]).find(x=>x.id===id); if(!r) return;
+  const verlauf=(r.verlauf||[]).concat([{von:'marke',provision:val,text:text||'',ts:new Date().toISOString()}]);
+  if(!String(id).startsWith('demo-')){
+    const {error}=await sbm.from('request_brands').update({provision:val, wer_dran:'haendler', status:'neu', verlauf}).eq('id',id);
+    if(error){ console.error('applyCounter',error); toast('Konnte Gegenvorschlag nicht senden'); return; }
+  }
+  r.provision=val; r.wer_dran='haendler'; r.status='neu'; r.verlauf=verlauf;
+  renderInReq(); inReqBadgeUpdate();
+  toast('Gegenvorschlag gesendet: '+val+' %');
+}
+/* Marken-Account-Popup (Stammdaten + editierbar: Logo & Wunschkanäle) */
+const CHANNELS=['Supermarkt','Discounter','Bioladen / Reformhaus','Feinkostladen','Weinhandlung','Getränke & Spirituosen','Bäckerei','Café / Coffeeshop','Restaurant / Bar','Hotel','Drogerie','Parfümerie','Apotheke','Friseur','Kosmetikstudio','Mode-Boutique','Schuhladen','Schmuck- & Uhrengeschäft','Concept Store','Geschenkeladen','Möbel- & Wohnaccessoires-Store','Haushalt & Küche','Blumen / Floristik','Spielwarengeschäft','Baby & Kind','Buchhandlung','Schreibwaren','Sportgeschäft','Fitnessstudio','Yoga- & Wellnessstudio','Museumsshop','Tankstellenshop','Kiosk / Spätkauf','Bahnhofsshop / Travel Retail','Souvenir- / Tourismusshop','Baumarkt','Gartencenter','Tierhandlung','Elektronik & Technik','Sonstiges'];
+let acctChannels=new Set(), acctLogoData=null;
+function openAccountModal(){
+  acctChannels=new Set(brand.wunschKanaele||[]); acctLogoData=null;
+  const row=(k,v)=> v ? `<div class="acc-row"><span class="acc-k">${esc(k)}</span><span class="acc-v">${v}</span></div>` : '';
+  const name=[brand.kontaktVorname,brand.kontaktNachname].filter(Boolean).join(' ');
+  const web=brand.website?`<a href="${esc(brand.website)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">${esc(brand.website.replace(/^https?:\/\//,''))}</a>`:'';
+  const ini=(brand.name||'?').replace(/[^A-Za-zÄÖÜäöü ]/g,' ').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('acctBody').innerHTML=
+    `<div class="acc-head">
+       <label class="acc-logo acc-logo-edit" title="Neues Logo hochladen">
+         <span id="acctLogoImg">${brand.logo?`<img src="${esc(brand.logo)}" alt="">`:`<span>${esc(ini)}</span>`}</span>
+         <span class="acc-logo-cam">Ändern</span>
+         <input type="file" accept="image/*" hidden onchange="acctLogoUpload(this)">
+       </label>
+       <div><div class="acc-brand">${esc(brand.name)}</div>
+       <div class="acc-hint">Klick aufs Logo, um ein neues hochzuladen.</div></div></div>`
+    + row('Ansprechpartner', esc(name))
+    + row('E-Mail (Login)', esc(brand.loginEmail||brand.kontaktEmail))
+    + row('Telefon', esc(brand.kontaktTelefon))
+    + row('Website', web)
+    + `<div class="acc-edit"><div class="acc-k" style="margin-bottom:8px">Wunsch-Vertriebskanäle <span style="font-weight:400;color:var(--muted)">(anklicken zum Auswählen)</span></div>
+        <div class="chips" id="acctChanChips"></div></div>
+       <div class="acc-save"><button class="btn btn-primary" style="width:100%" onclick="saveAccount()">Speichern</button></div>`;
+  renderAcctChans();
+  document.getElementById('acctModal').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function renderAcctChans(){
+  const c=document.getElementById('acctChanChips'); if(!c) return;
+  c.innerHTML=CHANNELS.map(ch=>`<button type="button" class="bchip ${acctChannels.has(ch)?'active':''}" onclick="acctToggleChan('${ch.replace(/'/g,"\\'")}')">${esc(ch)}</button>`).join('');
+}
+function acctToggleChan(ch){ if(acctChannels.has(ch)) acctChannels.delete(ch); else acctChannels.add(ch); renderAcctChans(); }
+function acctLogoUpload(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{ acctLogoData=e.target.result; document.getElementById('acctLogoImg').innerHTML=`<img src="${acctLogoData}" alt="">`; };
+  r.readAsDataURL(f);
+}
+async function saveAccount(){
+  const chans=[...acctChannels];
+  brand.wunschKanaele=chans;
+  const patch={wunsch_vertriebskanaele: chans.length?chans:null};
+  if(acctLogoData){
+    brand.logo=acctLogoData;   // sofort in der Session sichtbar
+    // Hinweis: data-URL wird NICHT in die DB geschrieben (Bildspeicher/R2 steht aus) — nur URLs sind persistierbar.
+  }
+  await dbUpdateBrand(patch);
+  closeMini('acctModal');
+  renderProfile();
+  const acct=document.getElementById('acctArea');
+  const ini=(brand.name||'?').replace(/[^A-Za-zÄÖÜäöü ]/g,' ').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  if(acct) acct.innerHTML=`<button class="who-btn" onclick="openAccountModal()" title="Dein Marken-Account">`
+    +(brand.logo?`<img class="who-logo" src="${esc(brand.logo)}" alt="">`:`<span class="who-av">${esc(ini)}</span>`)
+    +`<span class="who-nm">${esc(brand.name)}</span></button><button class="who-lo" onclick="spreatLogout()">↩ Abmelden</button>`;
+  toast(acctLogoData?'Kanäle gespeichert · Logo übernommen (dauerhaftes Speichern folgt mit dem Bildspeicher)':'Kanäle gespeichert');
+}
+
+/* Verhandlungs-Popup (Gegenvorschlag / Ablehnen mit optionalem Grund) */
+let negCtx={id:null,mode:null,kind:'in'};
+function openNegModal(id,mode,kind){
+  kind=kind||'in';
+  const r=(kind==='my'?(myRequests||[]):(inReqs||[])).find(x=>(x.id===id||x.brId===id)); if(!r) return;
+  negCtx={id,mode,kind};
+  const isCounter = mode==='counter';
+  document.getElementById('negTitle').textContent = isCounter?'Gegenvorschlag':'Anfrage ablehnen';
+  document.getElementById('negProvWrap').style.display = isCounter?'':'none';
+  document.getElementById('negProv').value = isCounter ? (r.provision!=null?r.provision:'') : '';
+  document.getElementById('negProvHint').textContent = isCounter ? ('Aktuell auf dem Tisch: '+(r.provision!=null?r.provision+' %':'—')) : '';
+  document.getElementById('negMsgLabel').innerHTML = isCounter
+    ? 'Kurze Nachricht <span class="opt">(optional)</span>'
+    : 'Grund <span class="opt">(optional)</span>';
+  document.getElementById('negMsg').value='';
+  document.getElementById('negMsg').placeholder = isCounter
+    ? 'z. B. Zu diesem Satz können wir gern starten.'
+    : 'z. B. Passt aktuell sortimentsseitig noch nicht.';
+  document.getElementById('negSubmit').textContent = isCounter?'Gegenvorschlag senden':'Ablehnen';
+  document.getElementById('negModal').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function submitNeg(){
+  const {id,mode,kind}=negCtx; if(!id) return;
+  const msg=(document.getElementById('negMsg').value||'').trim();
+  if(mode==='counter'){
+    const val=parseFloat(String(document.getElementById('negProv').value).replace(',','.'));
+    if(isNaN(val)||val<0||val>100){ toast('Bitte einen Satz zwischen 0 und 100 eingeben'); return; }
+    closeMini('negModal'); (kind==='my'?brApplyCounter:applyCounter)(id,val,msg);
+  } else {
+    closeMini('negModal'); (kind==='my'?brDecide:decideInReq)(id,'abgelehnt',msg);
+  }
+}
+
+/* ============ Meine Anfragen (Status-Dashboard) ============ */
+let myRequests=null, myReqFilter='alle', myReqSeen=false;
+function demoMyReq(){
+  const R=retailers;
+  return [
+    {ret:R[2]?R[2].name:'Nordlicht Concept', city:R[2]?R[2].city:'Hamburg', date:'21.07.2026', status:'angenommen',
+     prods:['Deutschland Fan-Set (6-teilig)','Deutschlandfahne XL'], zg:'Fußball-Fans & Familien zur EM/WM',
+     contact:'einkauf@nordlicht-concept.de'},
+    {ret:R[0]?R[0].name:'Feinkost am Dom', city:R[0]?R[0].city:'Köln', date:'19.07.2026', status:'pending',
+     prods:['Deutschland Tischdekoration XXL'], zg:'Spontankäufer im Innenstadtladen'},
+    {ret:R[3]?R[3].name:'Genussboutique', city:R[3]?R[3].city:'Berlin', date:'17.07.2026', status:'abgelehnt',
+     prods:['Deutschland Vuvuzela','Deutschland Flaggen-Fan-Set'], zg:'Event- & Partypublikum'}
+  ];
+}
+async function loadMyBrandReq(){
+  if((typeof STANDALONE!=='undefined' && STANDALONE) || !dbBrand) return [];
+  const {data,error}=await sbm.from('brand_requests')
+    .select('id,retailer_id,nachricht,provision,wer_dran,status,verlauf,created_at,brand_request_items(produkt_id,menge_pro_monat)')
+    .eq('marken_id',dbBrand.marken_id).order('created_at',{ascending:false});
+  if(error||!data) return [];
+  return data.map(b=>{
+    const rr=retailers.find(x=>x.rid===b.retailer_id);
+    const prods=(b.brand_request_items||[]).map(it=>{const p=products.find(x=>x.dbId===it.produkt_id);return p?p.name:it.produkt_id;});
+    return {brId:b.id, real:true, ret:rr?rr.name:'Demo-Laden', city:rr?rr.city:'',
+      date:b.created_at?new Date(b.created_at).toLocaleDateString('de-DE'):'',
+      status:(b.status==='neu'?'pending':b.status), provision:b.provision, wer_dran:b.wer_dran||'',
+      verlauf:Array.isArray(b.verlauf)?b.verlauf:[], prods, zg:'', msg:b.nachricht||'',
+      contact:(b.status==='angenommen'&&rr)?(rr.email||''):''};
+  });
+}
+async function loadMyReqAll(){ myRequests=(await loadMyBrandReq()).concat(demoMyReq()); }
+function updateMyReqBadge(){
+  const n=(myRequests||[]).filter(r=>r.status==='pending' && (!r.real || r.wer_dran==='marke')).length;
+  const b=document.getElementById('myReqBadge');
+  if(b){ b.style.display=(n && !myReqSeen)?'':'none'; b.textContent=n; }
+}
+/* Verhandlung auf brand_requests (Marke-Seite von „Meine Anfragen") */
+async function brDecide(brId,status,reason){
+  const r=(myRequests||[]).find(x=>x.brId===brId); if(!r) return;
+  const txt=status==='angenommen'?'Angenommen':('Abgelehnt'+(reason?': '+reason:''));
+  const verlauf=(r.verlauf||[]).concat([{von:'marke',provision:r.provision,text:txt,ts:new Date().toISOString()}]);
+  const {error}=await sbm.from('brand_requests').update({status, wer_dran:'', verlauf}).eq('id',brId);
+  if(error){ console.error(error); toast('Konnte nicht speichern'); return; }
+  r.status=status; r.wer_dran=''; r.verlauf=verlauf; renderMyReq(); updateMyReqBadge();
+  toast(status==='angenommen'?'Angenommen':'Abgelehnt');
+}
+async function brApplyCounter(brId,val,text){
+  const r=(myRequests||[]).find(x=>x.brId===brId); if(!r) return;
+  const verlauf=(r.verlauf||[]).concat([{von:'marke',provision:val,text:text||'',ts:new Date().toISOString()}]);
+  const {error}=await sbm.from('brand_requests').update({provision:val, wer_dran:'haendler', status:'neu', verlauf}).eq('id',brId);
+  if(error){ console.error(error); toast('Konnte nicht senden'); return; }
+  r.provision=val; r.wer_dran='haendler'; r.status='pending'; r.verlauf=verlauf; renderMyReq(); updateMyReqBadge();
+  toast('Gegenvorschlag gesendet: '+val+' %');
+}
+function setMyReqFilter(f,el){
+  myReqFilter=f;
+  document.querySelectorAll('#pane-myreq .myreq-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active'); renderMyReq();
+}
+const MRQ_LABEL={pending:'Offen',angenommen:'Angenommen',abgelehnt:'Abgelehnt'};
+function renderMyReq(){
+  const list=myReqFilter==='alle'?myRequests:myRequests.filter(r=>r.status===myReqFilter);
+  const el=document.getElementById('myReqList');
+  if(!list.length){ el.innerHTML='<div class="rcard-empty" style="padding:30px">Keine Anfragen in dieser Ansicht.</div>'; return; }
+  el.innerHTML=list.map(r=>`
+    <div class="mrq-item">
+      <div class="mrq-top">
+        <span class="mrq-name">${esc(r.ret)}</span>
+        <span style="font-size:12.5px;color:var(--muted)">${esc(r.city||'')}</span>
+        <span class="mrq-date">${esc(r.date)}</span>
+      </div>
+      <div style="margin-top:6px"><span class="mrq-st ${r.status}">${r.real&&r.status==='pending'?(r.wer_dran==='haendler'?'Warte auf Händler':'Gegenvorschlag — du bist dran'):(MRQ_LABEL[r.status]||r.status)}</span>${r.real?' <span style="font-size:11px;color:#2563eb;font-weight:700">· echt</span>':''}</div>
+      <div class="mrq-meta"><b>${r.prods.length} Produkt${r.prods.length===1?'':'e'}:</b> ${esc(r.prods.join(', '))}${r.zg?`<br><b>Zielgruppe:</b> ${esc(r.zg)}`:''}</div>
+      ${r.real?`<div class="mrq-prov">Auf dem Tisch: <b>${r.provision!=null?esc(r.provision)+' % Provision':'—'}</b></div>${negThread(r.verlauf)}`:''}
+      ${r.real && r.status==='pending' && r.wer_dran==='marke' ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="brDecide('${r.brId}','angenommen')">Zu ${esc(r.provision)} % annehmen</button>
+        <button class="btn" onclick="openNegModal('${r.brId}','counter','my')">Gegenvorschlag</button>
+        <button class="btn" onclick="openNegModal('${r.brId}','decline','my')">Ablehnen</button></div>`:''}
+      ${r.status==='angenommen'&&r.contact?`<div class="mrq-contact">Angenommen — der Händler ist interessiert. Direktkontakt: <b>${esc(r.contact)}</b></div>`:''}
+      ${r.status==='abgelehnt'&&!r.real?`<div class="mrq-meta" style="color:#b0656a">Diesmal kein Match — probier es später oder mit anderen Produkten erneut.</div>`:''}
+    </div>`).join('');
+}
 
 /* ============ Empfehlungen ============ */
 const BRAND_TAGS=['Feinkost','Regional','Bio','Nachhaltig','Genuss','Küche'];
@@ -978,7 +1602,7 @@ function seekReact(k){ const it=_seekItems[k]; if(it) toast('Reaktion an '+it[0]
 
 /* ============ Init ============ */
 document.getElementById('footYear').textContent=new Date().getFullYear();
-renderProfile(); renderPoolPreview(); renderRecs(); renderSeek();
+renderProfile(); renderPoolPreview(); renderRecs(); renderSeek(); updateMyReqBadge();
 
 /* ============================================================
    SUPABASE-ANBINDUNG (Chat A, HP-Auftrag 2026-07-21):
@@ -1075,7 +1699,11 @@ async function bootBrand(){
     return;
   }
   const email=(s.user.email||'').toLowerCase();
-  const {data:bs,error}=await sbm.from('brands').select('*').eq('login_email',email).eq('login_freigegeben',true);
+  // Demo: jede @spreat.com-Adresse ist Brudi & Brezel (für Kollegen-Präsentation)
+  const q = email.endsWith('@spreat.com')
+    ? sbm.from('brands').select('*').eq('marken_id','brudibrezel')
+    : sbm.from('brands').select('*').eq('login_email',email).eq('login_freigegeben',true);
+  const {data:bs,error}=await q;
   if(error || !bs || !bs.length){
     document.getElementById('mLogin').style.display=''; mlShow('mlNoBrand');
     document.getElementById('mlWho').textContent=email; return;
@@ -1093,6 +1721,9 @@ function applyDbData(b, ps){
   brand.welt=[b.kategorie_haupt,b.kategorie_unter].filter(Boolean).join(' › ');
   brand.defaultMargin=Number(b.provision_min)||20;
   brand.website=b.website||''; brand.verified=true;
+  brand.kontaktVorname=b.kontakt_vorname||''; brand.kontaktNachname=b.kontakt_nachname||'';
+  brand.kontaktEmail=b.kontakt_email||b.login_email||''; brand.kontaktTelefon=b.kontakt_telefon||'';
+  brand.loginEmail=b.login_email||''; brand.wunschKanaele=Array.isArray(b.wunsch_vertriebskanaele)?b.wunsch_vertriebskanaele:[];
   brand.gruendungsjahr=b.gruendungsjahr||''; brand.instagram=b.instagram||''; brand.tiktok=b.tiktok||'';
   brand.facebook=b.facebook||''; brand.linkedin=b.linkedin||'';
   brand.ean=b.ean||''; brand.eurolochung=b.eurolochung||''; brand.bereits_gelistet=b.bereits_gelistet||'';
@@ -1110,10 +1741,15 @@ function applyDbData(b, ps){
   const kats=[...new Set(products.map(p=>p.kat))];
   categories.length=0; kats.forEach(k=>categories.push({name:k,margin:null}));
   const acct=document.getElementById('acctArea');
-  if(acct) acct.innerHTML=`<span style="color:var(--muted)">${esc(brand.name)}</span>
-    <button onclick="spreatLogout()" style="background:none;border:1px solid var(--border);border-radius:9px;
-      padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text);font-family:inherit">↩︎ Abmelden</button>`;
+  if(acct){
+    const ini=(brand.name||'?').replace(/[^A-Za-zÄÖÜäöü ]/g,' ').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?';
+    acct.innerHTML=`<button class="who-btn" onclick="openAccountModal()" title="Dein Marken-Account">`
+      +(brand.logo?`<img class="who-logo" src="${esc(brand.logo)}" alt="">`:`<span class="who-av">${esc(ini)}</span>`)
+      +`<span class="who-nm">${esc(brand.name)}</span></button>`
+      +`<button class="who-lo" onclick="spreatLogout()">↩ Abmelden</button>`;
+  }
   renderProfile(); renderPoolPreview(); renderRecs(); renderSeek();
+  loadInReq().then(inReqBadgeUpdate);   // eingehende Händler-Anfragen + Badge
 }
 
 /* ---- Persistenz: Edits in die DB schreiben ---- */
